@@ -8,7 +8,12 @@ namespace GuardScheduler.Data
     public class PersonRepository : IPersonRepository
     {
         private readonly string _connString;
-        public PersonRepository(string connString) => _connString = connString;
+        public PersonRepository(string connString)
+        {
+            _connString = connString;
+            DatabaseInitializer.Initialize(connString);
+        }
+
 
         public List<Person> GetAll()
         {
