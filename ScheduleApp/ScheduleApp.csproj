@@ -132,7 +132,7 @@
     <Compile Include="Services\ExcelHelper.cs" />
     <Compile Include="Services\IExportService.cs" />
     <Compile Include="Services\ISchedulerService.cs" />
-    <Compile Include="Services\PersonNameImporter.cs" />
+    <Compile Include="Services\PersonImporter.cs" />
     <Compile Include="Services\SchedulerService.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
