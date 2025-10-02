@@ -115,6 +115,18 @@
     <Compile Include="Models\ScedulerOptions.cs" />
     <Compile Include="Models\ScheduleDay.cs" />
     <Compile Include="Models\ShiftSlot.cs" />
+    <Compile Include="PersonListForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PersonListForm.Designer.cs">
+      <DependentUpon>PersonListForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PersonRoleForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PersonRoleForm.Designer.cs">
+      <DependentUpon>PersonRoleForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ExcelHelper.cs" />

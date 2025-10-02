@@ -11,5 +11,15 @@ namespace GuardScheduler.Models
         public Role? SecondaryRole { get; set; }
         public int RotationOrder { get; set; }
         public List<string> AllowedPostNames { get; set; } = new List<string>();
+
+        public override string ToString()
+        {
+            string roles = $"{PrimaryRole}";
+            if (SecondaryRole.HasValue)
+            {
+                roles += $" / {SecondaryRole.Value}";
+            }
+            return $"{FirstName} {LastName} - Roles: {roles}";
+        }
     }
 }

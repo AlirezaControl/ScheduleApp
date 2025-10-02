@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using GuardScheduler.Services;
+using GuardScheduler;
 
 namespace ScheduleApp
 {
@@ -18,11 +19,20 @@ namespace ScheduleApp
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
             var repo = new PersonRepository("Data Source=schedule.db");
-            var importer = new PersonNameImporter(repo);
-            importer.ImportFromExcel("C:\\Temp\\persons.xlsx");
-            MessageBox.Show("Names imported successfully!");
-            Application.Run(new Form1());
+
+
+            var personListForm = new PersonListForm(repo);
+            personListForm.ShowDialog();
+
+
+
+            //var importer = new PersonNameImporter(repo);
+            //importer.ImportFromExcel("C:\\Temp\\persons.xlsx");
+            //MessageBox.Show("Names imported successfully!");
+
+            Application.Run(personListForm);
         }
     }
 }
