@@ -80,10 +80,11 @@ namespace GuardScheduler.Services
                             PostId = post.Id,
                             Start = TimeSpan.FromHours(startHour),
                             DurationHours = duration,
-                            SlotIndex = startHour // unique key
+                            SlotIndex = startHour
                         };
 
-                        slot.Id = _shiftSlotRepo.Insert(slot);
+                        // Do NOT insert slot here
+                        // slot.Id = _shiftSlotRepo.Insert(slot);
                         day.ShiftSlots.Add(slot);
 
                         var assignedPersonId = AssignPersonToSlot(post);
@@ -91,13 +92,15 @@ namespace GuardScheduler.Services
                         {
                             var assignment = new Assignment
                             {
-                                ShiftSlotId = slot.Id,
+                                ShiftSlotId = slot.Id, // will be updated in SaveScheduleDays
                                 PersonId = assignedPersonId.Value,
                                 AssignedAt = DateTime.UtcNow
                             };
-                            _assignmentRepo.Insert(assignment);
                             day.Assignments.Add(assignment);
                         }
+                        slot.Id = _shiftSlotRepo.Insert(slot);
+                        day.ShiftSlots.Add(slot);
+
                     }
                 }
                 // --- If this post is for PasBakhsh ---

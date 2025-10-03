@@ -80,7 +80,9 @@ namespace GuardScheduler
             foreach (var day in scheduleDays)
             {
                 string jalaliDate = new PersianDateTime(day.Date).ToString("yyyy/MM/dd");
-
+                var Dezhbans = (from p in _personRepo.GetAll()
+                               where p.PrimaryRole == Role.Dezhban
+                               select p).ToList();
                 foreach (var slot in day.ShiftSlots)
                 {
                     var assignments = day.Assignments.Where(a => a.ShiftSlotId == slot.Id).ToList();

@@ -24,7 +24,8 @@ namespace GuardScheduler.Data
                 {
                     foreach (var slot in day.ShiftSlots)
                     {
-                        var assignment = day.GetAssignment(slot.Id);
+                        // Find assignment for this slot (by reference to same object in memory)
+                        var assignment = day.Assignments.FirstOrDefault(a => a.ShiftSlotId == slot.Id || a.ShiftSlotId == 0);
 
                         var cmd = new SQLiteCommand(@"
                             INSERT INTO Schedules(Date, PostId, PersonId, Start, DurationHours)
@@ -37,7 +38,14 @@ namespace GuardScheduler.Data
                         cmd.Parameters.AddWithValue("@Start", slot.Start.ToString());
                         cmd.Parameters.AddWithValue("@DurationHours", slot.DurationHours);
 
+                        // Set the generated database ID
                         slot.Id = Convert.ToInt32(cmd.ExecuteScalar());
+
+                        // Update assignment to reference correct slot ID
+                        if (assignment != null)
+                        {
+                            assignment.ShiftSlotId = slot.Id;
+                        }
                     }
                 }
             }
@@ -73,7 +81,6 @@ namespace GuardScheduler.Data
                         int? personId = reader.IsDBNull(3) ? (int?)null : reader.GetInt32(3);
                         TimeSpan start = TimeSpan.Parse(reader.GetString(4));
                         int duration = reader.GetInt32(5);
-                        
 
                         if (!dayDict.ContainsKey(date))
                             dayDict[date] = new ScheduleDay { Date = date };
@@ -97,7 +104,7 @@ namespace GuardScheduler.Data
                             {
                                 ShiftSlotId = slotId,
                                 PersonId = personId.Value,
-                                AssignedAt = DateTime.Now // or store original assignment time if needed
+                                AssignedAt = DateTime.Now // could store actual assignment time if needed
                             });
                         }
                     }
@@ -116,6 +123,20 @@ namespace GuardScheduler.Data
             {
                 conn.Open();
                 var cmd = new SQLiteCommand("DELETE FROM Schedules;", conn);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
+        /// Delete all schedules for a specific day.
+        /// </summary>
+        public void DeleteScheduleDay(DateTime date)
+        {
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                var cmd = new SQLiteCommand("DELETE FROM Schedules WHERE Date = @Date;", conn);
+                cmd.Parameters.AddWithValue("@Date", date);
                 cmd.ExecuteNonQuery();
             }
         }
