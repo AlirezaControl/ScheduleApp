@@ -161,7 +161,8 @@ namespace GuardScheduler
             // 
             // ScheduleForm
             // 
-            this.ClientSize = new System.Drawing.Size(1305, 1000);
+            this.AutoScroll = true;
+            this.ClientSize = new System.Drawing.Size(1299, 353);
             this.Controls.Add(this.grpDezhban);
             this.Controls.Add(this.grpPasbakhsh);
             this.Controls.Add(this.grpNegahban);
