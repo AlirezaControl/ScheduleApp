@@ -67,6 +67,9 @@ namespace GuardScheduler.Services
             var posts = _postRepo.GetAll();
             var day = new ScheduleDay { Date = date };
 
+            // Track assigned persons for this day
+            var assignedToday = new HashSet<int>();
+
             // Prepare pools of available personnel per role for this day
             var rolePools = Enum.GetValues(typeof(Role))
                 .Cast<Role>()
@@ -79,7 +82,6 @@ namespace GuardScheduler.Services
 
             foreach (var post in posts)
             {
-                // Skip inactive posts
                 if (post.SlotsPerDay <= 0) continue;
 
                 // --- Negahban Posts ---
@@ -95,8 +97,12 @@ namespace GuardScheduler.Services
 
                     foreach (var (startHour, duration) in shifts)
                     {
-                        var personId = _postRotationQueues[post.Id].DequeueAndRotate();
-                        AddShift(day, post.Id, startHour, duration, personId);
+                        var personId = GetNextAvailableFromPostQueue(post.Id, assignedToday);
+                        if (personId.HasValue)
+                        {
+                            assignedToday.Add(personId.Value);
+                            AddShift(day, post.Id, startHour, duration, personId.Value);
+                        }
                     }
                 }
                 // --- Dezhban Posts ---
@@ -112,8 +118,12 @@ namespace GuardScheduler.Services
 
                     foreach (var (startHour, duration) in shifts)
                     {
-                        var personId = _postRotationQueues[post.Id].DequeueAndRotate();
-                        AddShift(day, post.Id, startHour, duration, personId);
+                        var personId = GetNextAvailableFromPostQueue(post.Id, assignedToday);
+                        if (personId.HasValue)
+                        {
+                            assignedToday.Add(personId.Value);
+                            AddShift(day, post.Id, startHour, duration, personId.Value);
+                        }
                     }
                 }
                 // --- PasBakhsh Posts ---
@@ -124,16 +134,22 @@ namespace GuardScheduler.Services
                     int[] startHours = { 1, 5, 9, 13, 17, 21 }; // 4-hour shifts
                     foreach (var startHour in startHours)
                     {
-                        var personId = _postRotationQueues[post.Id].DequeueAndRotate();
-                        AddShift(day, post.Id, startHour, 4, personId);
+                        var personId = GetNextAvailableFromPostQueue(post.Id, assignedToday);
+                        if (personId.HasValue)
+                        {
+                            assignedToday.Add(personId.Value);
+                            AddShift(day, post.Id, startHour, 4, personId.Value);
+                        }
                     }
                 }
                 // --- نیروی آماده (24-hour single person) ---
                 else if (post.Name == "نیروی آماده")
                 {
-                    var personId = AssignFromQueue(Role.PasBakhsh) ?? AssignFromQueue(Role.Dezhban);
+                    var personId = AssignFromQueue(Role.PasBakhsh, assignedToday)
+                                   ?? AssignFromQueue(Role.Dezhban, assignedToday);
                     if (personId.HasValue)
                     {
+                        assignedToday.Add(personId.Value);
                         AddShift(day, post.Id, 0, 24, personId.Value);
                     }
                 }
@@ -154,9 +170,10 @@ namespace GuardScheduler.Services
                         slot.Id = _shiftSlotRepo.Insert(slot);
                         day.ShiftSlots.Add(slot);
 
-                        var assignedPersonId = AssignPersonToSlot(post);
+                        var assignedPersonId = AssignPersonToSlot(post, assignedToday);
                         if (assignedPersonId.HasValue)
                         {
+                            assignedToday.Add(assignedPersonId.Value);
                             var assignment = new Assignment
                             {
                                 ShiftSlotId = slot.Id,
@@ -211,27 +228,55 @@ namespace GuardScheduler.Services
             _assignmentRepo.Insert(assignment);
         }
 
-        private int? AssignFromQueue(Role role)
+        private int? AssignFromQueue(Role role, HashSet<int> assignedToday)
         {
             if (_roleQueues.TryGetValue(role, out var queue) && queue.Count > 0)
             {
-                return queue.DequeueAndRotate();
+                int attempts = 0;
+                int personId;
+
+                do
+                {
+                    personId = queue.DequeueAndRotate();
+                    attempts++;
+                    if (attempts > queue.Count) return null; // all already assigned
+                } while (assignedToday.Contains(personId));
+
+                return personId;
             }
             return null;
         }
 
-        private int? AssignPersonToSlot(Post post)
+        private int? GetNextAvailableFromPostQueue(int postId, HashSet<int> assignedToday)
+        {
+            if (!_postRotationQueues.TryGetValue(postId, out var queue) || queue.Count == 0)
+                return null;
+
+            int attempts = 0;
+            int personId;
+
+            do
+            {
+                personId = queue.DequeueAndRotate();
+                attempts++;
+                if (attempts > queue.Count) return null; // all already assigned
+            } while (assignedToday.Contains(personId));
+
+            return personId;
+        }
+
+        private int? AssignPersonToSlot(Post post, HashSet<int> assignedToday)
         {
             var availablePersons = _personRepo.GetAll();
             var matchingPersons = availablePersons
-                .Where(p => post.AllowedRoles.Contains(p.PrimaryRole))
+                .Where(p => post.AllowedRoles.Contains(p.PrimaryRole) && !assignedToday.Contains(p.Id))
                 .ToList();
 
             if (!matchingPersons.Any())
                 return null;
 
             var role = matchingPersons.First().PrimaryRole;
-            return AssignFromQueue(role) ?? matchingPersons.First().Id;
+            return AssignFromQueue(role, assignedToday) ?? matchingPersons.First().Id;
         }
     }
 }
