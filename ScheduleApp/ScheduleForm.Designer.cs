@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing;
 using System.Windows.Forms;
 using PersianDateTimeControl;
 
@@ -23,9 +22,10 @@ namespace GuardScheduler
             this.labelFromDate = new System.Windows.Forms.Label();
             this.labelToDate = new System.Windows.Forms.Label();
             this.btnGenerateSchedule = new System.Windows.Forms.Button();
-            this.listBoxSchedule = new System.Windows.Forms.ListBox();
             this.dateTimePickerFrom = new PersianDateTimeControl.PersianDatePicker();
             this.dateTimePickerTo = new PersianDateTimeControl.PersianDatePicker();
+            this.dgvSchedule = new System.Windows.Forms.DataGridView();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvSchedule)).BeginInit();
             this.SuspendLayout();
             // 
             // labelFromDate
@@ -49,7 +49,6 @@ namespace GuardScheduler
             // btnGenerateSchedule
             // 
             this.btnGenerateSchedule.Location = new System.Drawing.Point(101, 100);
-            this.btnGenerateSchedule.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.btnGenerateSchedule.Name = "btnGenerateSchedule";
             this.btnGenerateSchedule.Size = new System.Drawing.Size(225, 38);
             this.btnGenerateSchedule.TabIndex = 4;
@@ -57,22 +56,9 @@ namespace GuardScheduler
             this.btnGenerateSchedule.UseVisualStyleBackColor = true;
             this.btnGenerateSchedule.Click += new System.EventHandler(this.btnGenerateSchedule_Click);
             // 
-            // listBoxSchedule
-            // 
-            this.listBoxSchedule.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.listBoxSchedule.FormattingEnabled = true;
-            this.listBoxSchedule.ItemHeight = 20;
-            this.listBoxSchedule.Location = new System.Drawing.Point(17, 150);
-            this.listBoxSchedule.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.listBoxSchedule.Name = "listBoxSchedule";
-            this.listBoxSchedule.Size = new System.Drawing.Size(483, 204);
-            this.listBoxSchedule.TabIndex = 5;
-            // 
             // dateTimePickerFrom
             // 
-            this.dateTimePickerFrom.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(178)));
+            this.dateTimePickerFrom.Font = new System.Drawing.Font("Tahoma", 8.25F);
             this.dateTimePickerFrom.Location = new System.Drawing.Point(151, 19);
             this.dateTimePickerFrom.MaximumSize = new System.Drawing.Size(500, 500);
             this.dateTimePickerFrom.MinimumSize = new System.Drawing.Size(93, 19);
@@ -83,39 +69,52 @@ namespace GuardScheduler
             // 
             // dateTimePickerTo
             // 
-            this.dateTimePickerTo.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(178)));
+            this.dateTimePickerTo.Font = new System.Drawing.Font("Tahoma", 8.25F);
             this.dateTimePickerTo.Location = new System.Drawing.Point(151, 62);
             this.dateTimePickerTo.MaximumSize = new System.Drawing.Size(500, 500);
             this.dateTimePickerTo.MinimumSize = new System.Drawing.Size(93, 19);
             this.dateTimePickerTo.Name = "dateTimePickerTo";
             this.dateTimePickerTo.Size = new System.Drawing.Size(189, 31);
-            this.dateTimePickerTo.TabIndex = 6;
+            this.dateTimePickerTo.TabIndex = 7;
             this.dateTimePickerTo.Value = null;
+            // 
+            // dgvSchedule
+            // 
+            this.dgvSchedule.AllowUserToAddRows = false;
+            this.dgvSchedule.AllowUserToDeleteRows = false;
+            this.dgvSchedule.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.dgvSchedule.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvSchedule.Location = new System.Drawing.Point(17, 150);
+            this.dgvSchedule.Name = "dgvSchedule";
+            this.dgvSchedule.ReadOnly = true;
+            this.dgvSchedule.Size = new System.Drawing.Size(700, 300);
+            this.dgvSchedule.TabIndex = 8;
             // 
             // ScheduleForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(516, 376);
+            this.ClientSize = new System.Drawing.Size(740, 480);
+            this.Controls.Add(this.dgvSchedule);
             this.Controls.Add(this.dateTimePickerTo);
             this.Controls.Add(this.dateTimePickerFrom);
-            this.Controls.Add(this.listBoxSchedule);
             this.Controls.Add(this.btnGenerateSchedule);
             this.Controls.Add(this.labelToDate);
             this.Controls.Add(this.labelFromDate);
-            this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "ScheduleForm";
             this.Text = "Schedule Generator";
+            ((System.ComponentModel.ISupportInitialize)(this.dgvSchedule)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
 
         private System.Windows.Forms.Label labelFromDate;
         private System.Windows.Forms.Label labelToDate;
         private System.Windows.Forms.Button btnGenerateSchedule;
-        private System.Windows.Forms.ListBox listBoxSchedule;
         private PersianDatePicker dateTimePickerFrom;
         private PersianDatePicker dateTimePickerTo;
+        private System.Windows.Forms.DataGridView dgvSchedule;
     }
 }

@@ -26,17 +26,18 @@ namespace ScheduleApp
             // --- Initialize repositories ---
             var personRepository = new PersonRepository(connectionString);
             var postRepository = new PostRepository(connectionString);
-            var shiftSlotRepository = new ShiftSlotRepository(connectionString);   // ✅ NEW
+            var shiftSlotRepository = new ShiftSlotRepository(connectionString);
             var assignmentRepository = new AssignmentRepository(connectionString);
+            var scheduleRepo = new ScheduleDayRepository(connectionString); // ✅ New ScheduleDay repository
 
             // --- Scheduler Options ---
             var schedulerOptions = new SchedulerOptions();
 
-            // --- Initialize SchedulerService with ShiftSlotRepository too ---
+            // --- Initialize SchedulerService with ShiftSlotRepository ---
             var schedulerService = new SchedulerService(
                 personRepository,
                 postRepository,
-                shiftSlotRepository,   // ✅ pass it here
+                shiftSlotRepository,
                 assignmentRepository,
                 schedulerOptions
             );
@@ -46,7 +47,8 @@ namespace ScheduleApp
                 schedulerService,
                 assignmentRepository,
                 personRepository,
-                postRepository
+                postRepository,
+                scheduleRepo // ✅ Pass repository to the form
             ));
         }
     }

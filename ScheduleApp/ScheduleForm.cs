@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
 using GuardScheduler.Models;
 using GuardScheduler.Services;
 using GuardScheduler.Data;
-using PersianDateTimeControl;
 using MD.PersianDateTime;
 
 namespace GuardScheduler
@@ -15,48 +15,75 @@ namespace GuardScheduler
         private readonly IAssignmentRepository _assignmentRepo;
         private readonly IPersonRepository _personRepo;
         private readonly IPostRepository _postRepo;
+        private readonly IScheduleDayRepository _scheduleRepo;
 
-        public ScheduleForm(ISchedulerService schedulerService, IAssignmentRepository assignmentRepo, IPersonRepository personRepo, IPostRepository postRepo)
+        public ScheduleForm(
+            ISchedulerService schedulerService,
+            IAssignmentRepository assignmentRepo,
+            IPersonRepository personRepo,
+            IPostRepository postRepo,
+            IScheduleDayRepository scheduleRepo)
         {
             InitializeComponent();
             _schedulerService = schedulerService;
             _assignmentRepo = assignmentRepo;
             _personRepo = personRepo;
             _postRepo = postRepo;
+            _scheduleRepo = scheduleRepo;
 
-            // PersianDatePicker already shows current Jalali date by default
             dateTimePickerFrom.Value = DateTime.Now;
             dateTimePickerTo.Value = DateTime.Now;
+
+            // Setup DataGridView columns
+            dgvSchedule.Columns.Clear();
+            dgvSchedule.Columns.Add("Date", "تاریخ");
+            dgvSchedule.Columns.Add("Post", "پست");
+            dgvSchedule.Columns.Add("Start", "شروع");
+            dgvSchedule.Columns.Add("Duration", "مدت (ساعت)");
+            dgvSchedule.Columns.Add("Guard", "نگهبان");
         }
 
         private void btnGenerateSchedule_Click(object sender, EventArgs e)
         {
-            // Clear old items
-            listBoxSchedule.Items.Clear();
+            dgvSchedule.Rows.Clear();
 
-            // PersianDatePicker.Value gives a DateTime directly (internally converted)
-            DateTime fromDate = dateTimePickerFrom.Value.Value;
-            DateTime toDate = dateTimePickerTo.Value.Value;
+            DateTime fromDate = dateTimePickerFrom.Value.Value.Date;
+            DateTime toDate = dateTimePickerTo.Value.Value.Date;
 
-            // Validation
             if (fromDate > toDate)
             {
                 MessageBox.Show("تاریخ شروع باید قبل از تاریخ پایان باشد.", "خطا", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // Generate the schedule
-            List<ScheduleDay> scheduleDays = _schedulerService.GenerateSchedule(fromDate, toDate);
+            List<ScheduleDay> scheduleDays = _scheduleRepo.GetScheduleDays(fromDate, toDate);
 
-            // Display results (convert back to Persian string for UI)
+            bool hasValidSchedule = scheduleDays.Any(d => d.ShiftSlots.Any());
+
+            if (!hasValidSchedule)
+            {
+                var newSchedule = _schedulerService.GenerateSchedule(fromDate, toDate);
+
+                if (newSchedule.Any(d => d.ShiftSlots.Any()))
+                {
+                    _scheduleRepo.DeleteAll();
+                    _scheduleRepo.SaveScheduleDays(newSchedule);
+                    scheduleDays = newSchedule;
+                }
+                else
+                {
+                    MessageBox.Show("هیچ برنامه‌ای تولید نشد.", "خطا", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+
+            // --- Display schedule in DataGridView ---
             foreach (var day in scheduleDays)
             {
                 string jalaliDate = new PersianDateTime(day.Date).ToString("yyyy/MM/dd");
-                listBoxSchedule.Items.Add($"برنامه روز {jalaliDate}:");
 
                 foreach (var slot in day.ShiftSlots)
                 {
-                    List<Assignment> assignments = _assignmentRepo.GetAssignmentsForSlot(slot.Id);
+                    var assignments = day.Assignments.Where(a => a.ShiftSlotId == slot.Id).ToList();
                     var post = _postRepo.GetById(slot.PostId);
 
                     if (assignments.Count > 0)
@@ -64,18 +91,18 @@ namespace GuardScheduler
                         foreach (var assignment in assignments)
                         {
                             var person = _personRepo.GetById(assignment.PersonId);
-                            string personName = person != null ? $"{person.FirstName} {person.LastName}" : "ناشناس";
+                            string personName = person != null
+                            ? $"{person.FirstName} {person.LastName}"
+                            : "بدون نگهبان";
 
-                            listBoxSchedule.Items.Add($"  پست: {post?.Name ?? "ناشناس"}, شروع: {slot.Start}, مدت: {slot.DurationHours} ساعت، نگهبان: {personName}");
+                            dgvSchedule.Rows.Add(jalaliDate, post?.Name ?? "ناشناس", slot.Start, slot.DurationHours, personName);
                         }
                     }
                     else
                     {
-                        listBoxSchedule.Items.Add($"  پست: {post?.Name ?? "ناشناس"}, شروع: {slot.Start}, مدت: {slot.DurationHours} ساعت، بدون نگهبان");
+                        dgvSchedule.Rows.Add(jalaliDate, post?.Name ?? "ناشناس", slot.Start, slot.DurationHours, "بدون نگهبان");
                     }
                 }
-
-                listBoxSchedule.Items.Add(""); // blank line
             }
         }
     }

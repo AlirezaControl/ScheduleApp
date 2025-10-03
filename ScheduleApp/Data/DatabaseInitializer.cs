@@ -71,6 +71,20 @@ namespace GuardScheduler.Data
                     FOREIGN KEY (PersonId) REFERENCES Person(Id)
                 );";
             cmd.ExecuteNonQuery();
+
+            // --- Schedules (for ScheduleDay / ShiftSlot assignments) ---
+            cmd.CommandText = @"
+                CREATE TABLE IF NOT EXISTS Schedules (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Date TEXT NOT NULL,
+                    PostId INTEGER NOT NULL,
+                    PersonId INTEGER,
+                    Start TEXT NOT NULL,
+                    DurationHours INTEGER NOT NULL,
+                    FOREIGN KEY(PostId) REFERENCES Post(Id),
+                    FOREIGN KEY(PersonId) REFERENCES Person(Id)
+                );";
+            cmd.ExecuteNonQuery();
         }
     }
 }

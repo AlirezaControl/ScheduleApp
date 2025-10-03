@@ -64,35 +64,108 @@ namespace GuardScheduler.Services
 
             foreach (var post in posts)
             {
-                for (int idx = 0; idx < post.SlotsPerDay; idx++)
+                // --- If this post is for Negahban ---
+                if (post.AllowedRoles.Contains(Role.Negahban))
                 {
-                    var startHour = (24 / Math.Max(1, post.SlotsPerDay)) * idx;
-                    var slot = new ShiftSlot
+                    var negahbanShifts = new List<(int startHour, int duration)>
+            {
+                (2, 2), (8, 2), (14, 2), (20, 2)
+            };
+
+                    foreach (var (startHour, duration) in negahbanShifts)
                     {
-                        Date = date,
-                        PostId = post.Id,
-                        Start = TimeSpan.FromHours(startHour),
-                        DurationHours = post.SlotDurationHours,
-                        SlotIndex = idx
-                    };
-
-                    // Save slot to DB so it gets a valid Id
-                    slot.Id = _shiftSlotRepo.Insert(slot);
-
-                    day.ShiftSlots.Add(slot);
-
-                    // Assign a person to the slot
-                    var assignedPersonId = AssignPersonToSlot(post);
-                    if (assignedPersonId != null)
-                    {
-                        var assignment = new Assignment
+                        var slot = new ShiftSlot
                         {
-                            ShiftSlotId = slot.Id,
-                            PersonId = assignedPersonId.Value,
-                            AssignedAt = DateTime.UtcNow
+                            Date = date,
+                            PostId = post.Id,
+                            Start = TimeSpan.FromHours(startHour),
+                            DurationHours = duration,
+                            SlotIndex = startHour // unique key
                         };
 
-                        _assignmentRepo.Insert(assignment);
+                        slot.Id = _shiftSlotRepo.Insert(slot);
+                        day.ShiftSlots.Add(slot);
+
+                        var assignedPersonId = AssignPersonToSlot(post);
+                        if (assignedPersonId != null)
+                        {
+                            var assignment = new Assignment
+                            {
+                                ShiftSlotId = slot.Id,
+                                PersonId = assignedPersonId.Value,
+                                AssignedAt = DateTime.UtcNow
+                            };
+                            _assignmentRepo.Insert(assignment);
+                            day.Assignments.Add(assignment);
+                        }
+                    }
+                }
+                // --- If this post is for PasBakhsh ---
+                else if (post.AllowedRoles.Contains(Role.PasBakhsh))
+                {
+                    var pasbakhshShifts = new List<(int startHour, int duration)>
+            {
+                (9, 4), (17, 4)
+            };
+
+                    foreach (var (startHour, duration) in pasbakhshShifts)
+                    {
+                        var slot = new ShiftSlot
+                        {
+                            Date = date,
+                            PostId = post.Id,
+                            Start = TimeSpan.FromHours(startHour),
+                            DurationHours = duration,
+                            SlotIndex = startHour
+                        };
+
+                        slot.Id = _shiftSlotRepo.Insert(slot);
+                        day.ShiftSlots.Add(slot);
+
+                        var assignedPersonId = AssignPersonToSlot(post);
+                        if (assignedPersonId != null)
+                        {
+                            var assignment = new Assignment
+                            {
+                                ShiftSlotId = slot.Id,
+                                PersonId = assignedPersonId.Value,
+                                AssignedAt = DateTime.UtcNow
+                            };
+                            _assignmentRepo.Insert(assignment);
+                            day.Assignments.Add(assignment);
+                        }
+                    }
+                }
+                // --- Default scheduling ---
+                else
+                {
+                    for (int idx = 0; idx < post.SlotsPerDay; idx++)
+                    {
+                        var startHour = (24 / Math.Max(1, post.SlotsPerDay)) * idx;
+                        var slot = new ShiftSlot
+                        {
+                            Date = date,
+                            PostId = post.Id,
+                            Start = TimeSpan.FromHours(startHour),
+                            DurationHours = post.SlotDurationHours,
+                            SlotIndex = idx
+                        };
+
+                        slot.Id = _shiftSlotRepo.Insert(slot);
+                        day.ShiftSlots.Add(slot);
+
+                        var assignedPersonId = AssignPersonToSlot(post);
+                        if (assignedPersonId != null)
+                        {
+                            var assignment = new Assignment
+                            {
+                                ShiftSlotId = slot.Id,
+                                PersonId = assignedPersonId.Value,
+                                AssignedAt = DateTime.UtcNow
+                            };
+                            _assignmentRepo.Insert(assignment);
+                            day.Assignments.Add(assignment);
+                        }
                     }
                 }
             }

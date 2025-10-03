@@ -6,6 +6,7 @@ namespace GuardScheduler.Models
 {
     public class ScheduleDay
     {
+        public int Id;
         public DateTime Date { get; set; }
         public List<ShiftSlot> ShiftSlots { get; set; } = new List<ShiftSlot>();
         public List<Assignment> Assignments { get; set; } = new List<Assignment>();
