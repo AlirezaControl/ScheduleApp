@@ -17,7 +17,7 @@ namespace GuardScheduler.Services
         private readonly Dictionary<Role, RotationQueue<int>> _roleQueues
             = new Dictionary<Role, RotationQueue<int>>();
 
-        // Per-post rotation queues for Negahban and Dezhban
+        // Per-post rotation queues for Negahban, Dezhban, PasBakhsh
         private readonly Dictionary<int, RotationQueue<int>> _postRotationQueues
             = new Dictionary<int, RotationQueue<int>>();
 
@@ -82,7 +82,7 @@ namespace GuardScheduler.Services
                 // --- Negahban Posts ---
                 if (post.AllowedRoles.Contains(Role.Negahban))
                 {
-                    SetupPostQueueFromPool(post, Role.Negahban, rolePools);
+                    SetupPostQueueFromPool(post, Role.Negahban, 3, rolePools);
 
                     var shifts = new List<(int startHour, int duration)>
                     {
@@ -99,7 +99,7 @@ namespace GuardScheduler.Services
                 // --- Dezhban Posts ---
                 else if (post.AllowedRoles.Contains(Role.Dezhban))
                 {
-                    SetupPostQueueFromPool(post, Role.Dezhban, rolePools);
+                    SetupPostQueueFromPool(post, Role.Dezhban, 3, rolePools);
 
                     var shifts = new List<(int startHour, int duration)>
                     {
@@ -116,12 +116,13 @@ namespace GuardScheduler.Services
                 // --- PasBakhsh Posts ---
                 else if (post.AllowedRoles.Contains(Role.PasBakhsh))
                 {
-                    int[] startHours = { 1, 5, 9, 13, 17, 21 };
+                    SetupPostQueueFromPool(post, Role.PasBakhsh, 2, rolePools);
+
+                    int[] startHours = { 1, 5, 9, 13, 17, 21 }; // 4-hour shifts
                     foreach (var startHour in startHours)
                     {
-                        var personId = AssignFromQueue(Role.PasBakhsh);
-                        if (!personId.HasValue) continue;
-                        AddShift(day, post.Id, startHour, 4, personId.Value);
+                        var personId = _postRotationQueues[post.Id].DequeueAndRotate();
+                        AddShift(day, post.Id, startHour, 4, personId);
                     }
                 }
                 // --- Default + NiroAmadeh scheduling ---
@@ -160,18 +161,18 @@ namespace GuardScheduler.Services
             return day;
         }
 
-        // Sets up a 3-person per-post queue, removing them from the role pool
-        private void SetupPostQueueFromPool(Post post, Role role, Dictionary<Role, List<int>> rolePools)
+        // Sets up a per-post rotation queue and removes them from role pool
+        private void SetupPostQueueFromPool(Post post, Role role, int count, Dictionary<Role, List<int>> rolePools)
         {
             if (_postRotationQueues.ContainsKey(post.Id)) return;
 
             var pool = rolePools[role];
-            if (pool.Count < 3)
+            if (pool.Count < count)
                 throw new InvalidOperationException($"Not enough personnel for {role} on post {post.Name}");
 
-            var ids = pool.Take(3).ToList();
-            // Remove from pool to prevent the same person on another post
-            pool.RemoveAll(x => ids.Contains(x));
+            var ids = pool.Take(count).ToList();
+            foreach (var id in ids)
+                pool.Remove(id);
 
             _postRotationQueues[post.Id] = new RotationQueue<int>(ids);
         }
