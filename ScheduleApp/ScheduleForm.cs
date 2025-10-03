@@ -34,18 +34,39 @@ namespace GuardScheduler
             dateTimePickerFrom.Value = DateTime.Now;
             dateTimePickerTo.Value = DateTime.Now;
 
-            // Setup DataGridView columns
-            dgvSchedule.Columns.Clear();
-            dgvSchedule.Columns.Add("Date", "تاریخ");
-            dgvSchedule.Columns.Add("Post", "پست");
-            dgvSchedule.Columns.Add("Start", "شروع");
-            dgvSchedule.Columns.Add("Duration", "مدت (ساعت)");
-            dgvSchedule.Columns.Add("Guard", "نگهبان");
+            // Create separate grids for categories
+            SetupGrid(dgv24HourPosts, "پست‌های ۲۴ ساعته");
+            SetupGrid(dgvNegahban, "نگهبان");
+            SetupGrid(dgvPasbakhsh, "پاس‌بخش");
+            SetupGrid(dgvDezhban, "دژبان");
+        }
+
+        private void SetupGrid(DataGridView dgv, string title)
+        {
+            dgv.Columns.Clear();
+            dgv.Columns.Add("Post", "پست");
+
+            // Add columns for each hour of the day
+            for (int hour = 0; hour < 24; hour++)
+            {
+                dgv.Columns.Add($"H{hour}", hour.ToString("00") + ":00");
+            }
+
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+            dgv.RowHeadersVisible = false;
+            dgv.AllowUserToAddRows = false;
+            dgv.ReadOnly = true;
+
+            // Optional: group box title
+            dgv.Parent.Text = title;
         }
 
         private void btnGenerateSchedule_Click(object sender, EventArgs e)
         {
-            dgvSchedule.Rows.Clear();
+            dgv24HourPosts.Rows.Clear();
+            dgvNegahban.Rows.Clear();
+            dgvPasbakhsh.Rows.Clear();
+            dgvDezhban.Rows.Clear();
 
             DateTime fromDate = dateTimePickerFrom.Value.Value.Date;
             DateTime toDate = dateTimePickerTo.Value.Value.Date;
@@ -56,53 +77,55 @@ namespace GuardScheduler
                 return;
             }
 
-            // Clear old schedule
             _scheduleRepo.DeleteAll();
-
-            // Generate new schedule
             var newSchedule = _schedulerService.GenerateSchedule(fromDate, toDate);
             if (!newSchedule.Any(d => d.ShiftSlots.Any()))
             {
                 MessageBox.Show("هیچ برنامه‌ای تولید نشد.", "خطا", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-
-            // Save to repository
             _scheduleRepo.SaveScheduleDays(newSchedule);
 
-            // --- Display schedule in DataGridView ---
+            // --- Display schedule in different timetables ---
             foreach (var day in newSchedule)
             {
                 string jalaliDate = new PersianDateTime(day.Date).ToString("yyyy/MM/dd");
 
-                foreach (var slot in day.ShiftSlots.OrderBy(s => s.Start))
+                // Group slots by post
+                var posts = day.ShiftSlots.GroupBy(s => s.PostId);
+                foreach (var postGroup in posts)
                 {
-                    var post = _postRepo.GetById(slot.PostId);
+                    var post = _postRepo.GetById(postGroup.Key);
+                    if (post == null) continue;
 
-                    // Find all assignments for this slot
-                    var slotAssignments = day.Assignments
-                                             .Where(a => a.ShiftSlotId == slot.Id)
-                                             .ToList();
+                    // Build row for this post
+                    var rowCells = new object[25];
+                    rowCells[0] = $"{post.Name} ({jalaliDate})"; // first cell = post name
 
-                    if (slotAssignments.Any())
+                    foreach (var slot in postGroup)
                     {
-                        foreach (var assignment in slotAssignments)
+                        var assignment = day.Assignments.FirstOrDefault(a => a.ShiftSlotId == slot.Id);
+                        if (assignment != null)
                         {
                             var person = _personRepo.GetById(assignment.PersonId);
-                            string personName = person != null
-                                ? $"{person.FirstName} {person.LastName}"
-                                : "بدون نگهبان";
+                            string personName = person != null ? $"{person.FirstName} {person.LastName}" : "بدون نگهبان";
 
-                            dgvSchedule.Rows.Add(jalaliDate, post?.Name ?? "ناشناس", slot.Start, slot.DurationHours, personName);
+                            int colIndex = slot.Start.Hours; // map hour → column
+                            rowCells[colIndex + 1] = personName;
                         }
                     }
+
+                    // Decide which grid to add row to
+                    if (post.AllowedRoles.Contains(Role.Negahban))
+                        dgvNegahban.Rows.Add(rowCells);
+                    else if (post.AllowedRoles.Contains(Role.PasBakhsh))
+                        dgvPasbakhsh.Rows.Add(rowCells);
+                    else if (post.AllowedRoles.Contains(Role.Dezhban))
+                        dgvDezhban.Rows.Add(rowCells);
                     else
-                    {
-                        dgvSchedule.Rows.Add(jalaliDate, post?.Name ?? "ناشناس", slot.Start, slot.DurationHours, "بدون نگهبان");
-                    }
+                        dgv24HourPosts.Rows.Add(rowCells);
                 }
             }
         }
-
     }
 }
