@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Windows.Forms;
 using GuardScheduler.Models;
 using GuardScheduler.Data;
@@ -27,6 +26,7 @@ namespace GuardScheduler
             txtLastName.Text = _person.LastName;
             comboBoxPrimaryRole.SelectedItem = _person.PrimaryRole.ToString();
             comboBoxSecondaryRole.SelectedItem = _person.SecondaryRole?.ToString();
+            checkBoxAvailable.Checked = _person.Available; // Load availability
         }
 
         private void LoadRoles()
@@ -44,10 +44,11 @@ namespace GuardScheduler
             _person.LastName = txtLastName.Text;
             _person.PrimaryRole = (Role)comboBoxPrimaryRole.SelectedItem;
             _person.SecondaryRole = comboBoxSecondaryRole.SelectedItem != null ? (Role?)comboBoxSecondaryRole.SelectedItem : null;
+            _person.Available = checkBoxAvailable.Checked; // Save availability
 
             _personRepository.Update(_person);
 
-            MessageBox.Show("Person roles updated successfully!");
+            MessageBox.Show("Person roles and availability updated successfully!");
             this.Close();
         }
     }
