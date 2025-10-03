@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using GuardScheduler.Models;
@@ -34,7 +33,6 @@ namespace GuardScheduler
             dateTimePickerFrom.Value = DateTime.Now;
             dateTimePickerTo.Value = DateTime.Now;
 
-            // Setup grids
             SetupGrid(dgv24HourPosts);
             SetupGrid(dgvNegahban);
             SetupGrid(dgvPasbakhsh);
@@ -45,7 +43,6 @@ namespace GuardScheduler
         {
             dgv.Columns.Clear();
             dgv.Columns.Add("Post", "پست");
-
             for (int hour = 0; hour < 24; hour++)
                 dgv.Columns.Add($"H{hour}", hour.ToString("00") + ":00");
 
@@ -96,16 +93,22 @@ namespace GuardScheduler
                     foreach (var slot in postGroup)
                     {
                         var assignment = day.Assignments.FirstOrDefault(a => a.ShiftSlotId == slot.Id);
+                        string personName = "بدون نگهبان";
                         if (assignment != null)
                         {
                             var person = _personRepo.GetById(assignment.PersonId);
-                            string personName = person != null ? $"{person.FirstName} {person.LastName}" : "بدون نگهبان";
-                            int colIndex = slot.Start.Hours;
-                            rowCells[colIndex + 1] = personName;
+                            personName = person != null ? $"{person.FirstName} {person.LastName}" : personName;
+                        }
+
+                        // Fill all hours based on DurationHours
+                        int startHour = slot.Start.Hours;
+                        int endHour = Math.Min(startHour + slot.DurationHours, 24); // prevent overflow
+                        for (int h = startHour; h < endHour; h++)
+                        {
+                            rowCells[h + 1] = personName;
                         }
                     }
 
-                    // Assign to proper grid
                     if (post.Name == "نیروی آماده" || (!post.AllowedRoles.Contains(Role.Negahban)
                         && !post.AllowedRoles.Contains(Role.PasBakhsh)
                         && !post.AllowedRoles.Contains(Role.Dezhban)))
@@ -124,7 +127,6 @@ namespace GuardScheduler
 
         private void btnOpenPersonList_Click(object sender, EventArgs e)
         {
-            // Open PersonListForm
             using (var personListForm = new PersonListForm(_personRepo))
             {
                 personListForm.ShowDialog();

@@ -11,9 +11,7 @@ namespace GuardScheduler
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
-            {
                 components.Dispose();
-            }
             base.Dispose(disposing);
         }
 
@@ -103,30 +101,30 @@ namespace GuardScheduler
             // 
             // dgv24HourPosts
             // 
-            this.dgv24HourPosts.Location = new System.Drawing.Point(0, 25);
+            this.dgv24HourPosts.Location = new System.Drawing.Point(6, 25);
             this.dgv24HourPosts.Name = "dgv24HourPosts";
-            this.dgv24HourPosts.Size = new System.Drawing.Size(684, 150);
+            this.dgv24HourPosts.Size = new System.Drawing.Size(669, 150);
             this.dgv24HourPosts.TabIndex = 0;
             // 
             // dgvNegahban
             // 
             this.dgvNegahban.Location = new System.Drawing.Point(6, 25);
             this.dgvNegahban.Name = "dgvNegahban";
-            this.dgvNegahban.Size = new System.Drawing.Size(678, 150);
+            this.dgvNegahban.Size = new System.Drawing.Size(669, 150);
             this.dgvNegahban.TabIndex = 0;
             // 
             // dgvPasbakhsh
             // 
             this.dgvPasbakhsh.Location = new System.Drawing.Point(6, 25);
             this.dgvPasbakhsh.Name = "dgvPasbakhsh";
-            this.dgvPasbakhsh.Size = new System.Drawing.Size(678, 150);
+            this.dgvPasbakhsh.Size = new System.Drawing.Size(688, 150);
             this.dgvPasbakhsh.TabIndex = 0;
             // 
             // dgvDezhban
             // 
             this.dgvDezhban.Location = new System.Drawing.Point(6, 25);
             this.dgvDezhban.Name = "dgvDezhban";
-            this.dgvDezhban.Size = new System.Drawing.Size(678, 150);
+            this.dgvDezhban.Size = new System.Drawing.Size(669, 150);
             this.dgvDezhban.TabIndex = 0;
             // 
             // grp24Hour
@@ -172,7 +170,7 @@ namespace GuardScheduler
             // ScheduleForm
             // 
             this.AutoScroll = true;
-            this.ClientSize = new System.Drawing.Size(1299, 1000);
+            this.ClientSize = new System.Drawing.Size(774, 1000);
             this.Controls.Add(this.btnOpenPersonList);
             this.Controls.Add(this.grpDezhban);
             this.Controls.Add(this.grpPasbakhsh);
