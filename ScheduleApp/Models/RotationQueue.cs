@@ -59,9 +59,33 @@ namespace GuardScheduler.Models
         }
 
         /// <summary>
+        /// Rotates until the given item is at the front of the queue.
+        /// </summary>
+        public bool RotateTo(T target)
+        {
+            if (_items.Count == 0)
+                return false;
+
+            int maxRotations = _items.Count;
+            for (int i = 0; i < maxRotations; i++)
+            {
+                if (EqualityComparer<T>.Default.Equals(_items.First.Value, target))
+                    return true;
+
+                DequeueAndRotate();
+            }
+            return false; // target not found
+        }
+
+        /// <summary>
         /// Snapshot of current queue order.
         /// </summary>
         public IEnumerable<T> Snapshot() => _items.ToList();
+
+        /// <summary>
+        /// Convert queue to List<T>.
+        /// </summary>
+        public List<T> ToList() => _items.ToList();
 
         internal object Dequeue()
         {

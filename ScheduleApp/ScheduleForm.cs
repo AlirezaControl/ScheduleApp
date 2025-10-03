@@ -56,46 +56,42 @@ namespace GuardScheduler
                 return;
             }
 
-            List<ScheduleDay> scheduleDays = _scheduleRepo.GetScheduleDays(fromDate, toDate);
+            // Clear old schedule
+            _scheduleRepo.DeleteAll();
 
-            bool hasValidSchedule = scheduleDays.Any(d => d.ShiftSlots.Any());
-
-            if (!hasValidSchedule)
+            // Generate new schedule
+            var newSchedule = _schedulerService.GenerateSchedule(fromDate, toDate);
+            if (!newSchedule.Any(d => d.ShiftSlots.Any()))
             {
-                var newSchedule = _schedulerService.GenerateSchedule(fromDate, toDate);
-
-                if (newSchedule.Any(d => d.ShiftSlots.Any()))
-                {
-                    _scheduleRepo.DeleteAll();
-                    _scheduleRepo.SaveScheduleDays(newSchedule);
-                    scheduleDays = newSchedule;
-                }
-                else
-                {
-                    MessageBox.Show("هیچ برنامه‌ای تولید نشد.", "خطا", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
+                MessageBox.Show("هیچ برنامه‌ای تولید نشد.", "خطا", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
 
+            // Save to repository
+            _scheduleRepo.SaveScheduleDays(newSchedule);
+
             // --- Display schedule in DataGridView ---
-            foreach (var day in scheduleDays)
+            foreach (var day in newSchedule)
             {
                 string jalaliDate = new PersianDateTime(day.Date).ToString("yyyy/MM/dd");
-                var Dezhbans = (from p in _personRepo.GetAll()
-                               where p.PrimaryRole == Role.Dezhban
-                               select p).ToList();
-                foreach (var slot in day.ShiftSlots)
+
+                foreach (var slot in day.ShiftSlots.OrderBy(s => s.Start))
                 {
-                    var assignments = day.Assignments.Where(a => a.ShiftSlotId == slot.Id).ToList();
                     var post = _postRepo.GetById(slot.PostId);
 
-                    if (assignments.Count > 0)
+                    // Find all assignments for this slot
+                    var slotAssignments = day.Assignments
+                                             .Where(a => a.ShiftSlotId == slot.Id)
+                                             .ToList();
+
+                    if (slotAssignments.Any())
                     {
-                        foreach (var assignment in assignments)
+                        foreach (var assignment in slotAssignments)
                         {
                             var person = _personRepo.GetById(assignment.PersonId);
                             string personName = person != null
-                            ? $"{person.FirstName} {person.LastName}"
-                            : "بدون نگهبان";
+                                ? $"{person.FirstName} {person.LastName}"
+                                : "بدون نگهبان";
 
                             dgvSchedule.Rows.Add(jalaliDate, post?.Name ?? "ناشناس", slot.Start, slot.DurationHours, personName);
                         }
@@ -107,5 +103,6 @@ namespace GuardScheduler
                 }
             }
         }
+
     }
 }

@@ -38,10 +38,12 @@ namespace GuardScheduler.Services
             var people = _personRepo.GetAll();
             foreach (Role role in Enum.GetValues(typeof(Role)))
             {
-                var list = people.Where(p => p.PrimaryRole == role)
-                                 .OrderBy(p => p.RotationOrder)
-                                 .Select(p => p.Id)
-                                 .ToList();
+                var list = people
+                    .Where(p => p.PrimaryRole == role)
+                    .OrderBy(p => p.RotationOrder)
+                    .Select(p => p.Id)
+                    .ToList();
+
                 _roleQueues[role] = new RotationQueue<int>(list);
             }
         }
@@ -51,8 +53,7 @@ namespace GuardScheduler.Services
             var days = new List<ScheduleDay>();
             for (var d = fromDate.Date; d <= toDate.Date; d = d.AddDays(1))
             {
-                var day = GenerateScheduleForDate(d);
-                days.Add(day);
+                days.Add(GenerateScheduleForDate(d));
             }
             return days;
         }
@@ -67,85 +68,106 @@ namespace GuardScheduler.Services
                 // --- Negahban Posts ---
                 if (post.AllowedRoles.Contains(Role.Negahban))
                 {
+                    // Negahbans work in 2-hour alternating shifts (like Pasbakhshs, but 2 hours each)
                     var negahbanShifts = new List<(int startHour, int duration)>
                     {
-                        (0,2),(2,2),(4,2),(6,2),(8,2),(10,2),(12,2),(14,2),(16,2),(18,2),(20,2),(22,2)
+                        (0,2),(2,2),(4,2),(6,2),(8,2),(10,2),
+                        (12,2),(14,2),(16,2),(18,2),(20,2),(22,2)
                     };
 
-                    int slotsPerShift = 1; // three Negahban per post
-                    for (int shiftIdx = 0; shiftIdx < negahbanShifts.Count; shiftIdx++)
+                    foreach (var (startHour, duration) in negahbanShifts)
                     {
-                        var (startHour, duration) = negahbanShifts[shiftIdx];
+                        var personId = AssignFromQueue(Role.Negahban);
+                        if (!personId.HasValue) continue;
 
-                        for (int i = 0; i < slotsPerShift; i++)
+                        var slot = new ShiftSlot
                         {
-                            var slot = new ShiftSlot
-                            {
-                                Date = date,
-                                PostId = post.Id,
-                                Start = TimeSpan.FromHours(startHour),
-                                DurationHours = duration,
-                                SlotIndex = shiftIdx * 10 + i
-                            };
+                            Date = date,
+                            PostId = post.Id,
+                            Start = TimeSpan.FromHours(startHour),
+                            DurationHours = duration,
+                            SlotIndex = startHour
+                        };
+                        slot.Id = _shiftSlotRepo.Insert(slot);
+                        day.ShiftSlots.Add(slot);
 
-                            slot.Id = _shiftSlotRepo.Insert(slot);
-                            day.ShiftSlots.Add(slot);
-
-                            var assignedPersonId = AssignPersonToSlot(post);
-                            if (assignedPersonId.HasValue)
-                            {
-                                var assignment = new Assignment
-                                {
-                                    ShiftSlotId = slot.Id,
-                                    PersonId = assignedPersonId.Value,
-                                    AssignedAt = DateTime.UtcNow
-                                };
-                                day.Assignments.Add(assignment);
-                                _assignmentRepo.Insert(assignment);
-                            }
-                        }
+                        var assignment = new Assignment
+                        {
+                            ShiftSlotId = slot.Id,
+                            PersonId = personId.Value,
+                            AssignedAt = DateTime.UtcNow
+                        };
+                        day.Assignments.Add(assignment);
+                        _assignmentRepo.Insert(assignment);
                     }
                 }
                 // --- PasBakhsh Posts ---
                 else if (post.AllowedRoles.Contains(Role.PasBakhsh))
                 {
-                    var matchingPersons = _personRepo.GetAll()
-                        .Where(p => p.PrimaryRole == Role.PasBakhsh)
-                        .Take(1)
-                        .ToList(); // 1 PasBakhsh
-
-                    int[] startHours = { 1,4,9 , 13, 17,21 }; // 4 shifts per person
-
-                    for (int personIdx = 0; personIdx < matchingPersons.Count; personIdx++)
+                    int[] startHours = { 1, 5, 9, 13, 17, 21 }; // 6 shifts in day
+                    foreach (var startHour in startHours)
                     {
-                        var personId = matchingPersons[personIdx].Id;
+                        var personId = AssignFromQueue(Role.PasBakhsh);
+                        if (!personId.HasValue) continue;
 
-                        for (int shiftIdx = 0; shiftIdx < 4; shiftIdx++)
+                        var slot = new ShiftSlot
                         {
-                            int startHour = startHours[shiftIdx];
-                            var slot = new ShiftSlot
-                            {
-                                Date = date,
-                                PostId = post.Id,
-                                Start = TimeSpan.FromHours(startHour),
-                                DurationHours = 4,
-                                SlotIndex = personIdx * 10 + shiftIdx
-                            };
-                            slot.Id = _shiftSlotRepo.Insert(slot);
-                            day.ShiftSlots.Add(slot);
+                            Date = date,
+                            PostId = post.Id,
+                            Start = TimeSpan.FromHours(startHour),
+                            DurationHours = 4,
+                            SlotIndex = startHour
+                        };
+                        slot.Id = _shiftSlotRepo.Insert(slot);
+                        day.ShiftSlots.Add(slot);
 
-                            var assignment = new Assignment
-                            {
-                                ShiftSlotId = slot.Id,
-                                PersonId = personId,
-                                AssignedAt = DateTime.UtcNow
-                            };
-                            day.Assignments.Add(assignment);
-                            _assignmentRepo.Insert(assignment);
-                        }
+                        var assignment = new Assignment
+                        {
+                            ShiftSlotId = slot.Id,
+                            PersonId = personId.Value,
+                            AssignedAt = DateTime.UtcNow
+                        };
+                        day.Assignments.Add(assignment);
+                        _assignmentRepo.Insert(assignment);
                     }
                 }
-                // --- Default scheduling for other posts ---
+                // --- Dezhban Posts ---
+                else if (post.AllowedRoles.Contains(Role.Dezhban))
+                {
+                    // 2-hour shifts from 2:00 → 24:00
+                    var dezhbanShifts = new List<(int startHour, int duration)>
+                    {
+                        (2,2),(4,2),(6,2),(8,2),(10,2),(12,2),
+                        (14,2),(16,2),(18,2),(20,2),(22,2)
+                    };
+
+                    foreach (var (startHour, duration) in dezhbanShifts)
+                    {
+                        var personId = AssignFromQueue(Role.Dezhban);
+                        if (!personId.HasValue) continue;
+
+                        var slot = new ShiftSlot
+                        {
+                            Date = date,
+                            PostId = post.Id,
+                            Start = TimeSpan.FromHours(startHour),
+                            DurationHours = duration,
+                            SlotIndex = startHour
+                        };
+                        slot.Id = _shiftSlotRepo.Insert(slot);
+                        day.ShiftSlots.Add(slot);
+
+                        var assignment = new Assignment
+                        {
+                            ShiftSlotId = slot.Id,
+                            PersonId = personId.Value,
+                            AssignedAt = DateTime.UtcNow
+                        };
+                        day.Assignments.Add(assignment);
+                        _assignmentRepo.Insert(assignment);
+                    }
+                }
+                // --- Default scheduling ---
                 else
                 {
                     for (int idx = 0; idx < post.SlotsPerDay; idx++)
@@ -181,10 +203,18 @@ namespace GuardScheduler.Services
             return day;
         }
 
+        private int? AssignFromQueue(Role role)
+        {
+            if (_roleQueues.TryGetValue(role, out var queue) && queue.Count > 0)
+            {
+                return queue.DequeueAndRotate();
+            }
+            return null;
+        }
+
         private int? AssignPersonToSlot(Post post)
         {
             var availablePersons = _personRepo.GetAll();
-
             var matchingPersons = availablePersons
                 .Where(p => post.AllowedRoles.Contains(p.PrimaryRole))
                 .ToList();
@@ -193,12 +223,7 @@ namespace GuardScheduler.Services
                 return null;
 
             var role = matchingPersons.First().PrimaryRole;
-            if (_roleQueues.TryGetValue(role, out var queue) && queue.Count > 0)
-            {
-                return queue.DequeueAndRotate(); // Dequeue rotates internally
-            }
-
-            return matchingPersons.First().Id;
+            return AssignFromQueue(role) ?? matchingPersons.First().Id;
         }
     }
 }
