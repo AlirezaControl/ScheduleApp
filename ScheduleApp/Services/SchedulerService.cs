@@ -79,6 +79,9 @@ namespace GuardScheduler.Services
 
             foreach (var post in posts)
             {
+                // Skip inactive posts
+                if (post.SlotsPerDay <= 0) continue;
+
                 // --- Negahban Posts ---
                 if (post.AllowedRoles.Contains(Role.Negahban))
                 {
@@ -97,7 +100,7 @@ namespace GuardScheduler.Services
                     }
                 }
                 // --- Dezhban Posts ---
-                else if (post.AllowedRoles.Contains(Role.Dezhban))
+                else if (post.AllowedRoles.Contains(Role.Dezhban) && post.Name != "نیروی آماده")
                 {
                     SetupPostQueueFromPool(post, Role.Dezhban, 3, rolePools);
 
@@ -114,7 +117,7 @@ namespace GuardScheduler.Services
                     }
                 }
                 // --- PasBakhsh Posts ---
-                else if (post.AllowedRoles.Contains(Role.PasBakhsh))
+                else if (post.AllowedRoles.Contains(Role.PasBakhsh) && post.Name != "نیروی آماده")
                 {
                     SetupPostQueueFromPool(post, Role.PasBakhsh, 2, rolePools);
 
@@ -125,7 +128,16 @@ namespace GuardScheduler.Services
                         AddShift(day, post.Id, startHour, 4, personId);
                     }
                 }
-                // --- Default + NiroAmadeh scheduling ---
+                // --- نیروی آماده (24-hour single person) ---
+                else if (post.Name == "نیروی آماده")
+                {
+                    var personId = AssignFromQueue(Role.PasBakhsh) ?? AssignFromQueue(Role.Dezhban);
+                    if (personId.HasValue)
+                    {
+                        AddShift(day, post.Id, 0, 24, personId.Value);
+                    }
+                }
+                // --- Default scheduling for other posts ---
                 else
                 {
                     for (int idx = 0; idx < post.SlotsPerDay; idx++)
@@ -161,7 +173,6 @@ namespace GuardScheduler.Services
             return day;
         }
 
-        // Sets up a per-post rotation queue and removes them from role pool
         private void SetupPostQueueFromPool(Post post, Role role, int count, Dictionary<Role, List<int>> rolePools)
         {
             if (_postRotationQueues.ContainsKey(post.Id)) return;
