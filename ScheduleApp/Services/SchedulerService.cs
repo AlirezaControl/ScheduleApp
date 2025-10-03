@@ -61,7 +61,6 @@ namespace GuardScheduler.Services
             var posts = _postRepo.GetAll();
             var day = new ScheduleDay { Date = date };
 
-            // Track assigned persons per post name
             var assignedByPostName = new Dictionary<string, HashSet<int>>();
 
             var rolePools = Enum.GetValues(typeof(Role))
@@ -190,12 +189,9 @@ namespace GuardScheduler.Services
             while (attempts-- > 0)
             {
                 var personId = queue.DequeueAndRotate();
-
-                // Check if person is Available
                 var person = _personRepo.GetById(personId);
                 if (person == null || !person.Available) continue;
 
-                // allow multiple shifts on same post, but not across different post names
                 if (!assignedByPostName.Any(kvp => kvp.Key != postName && kvp.Value.Contains(personId)))
                     return personId;
             }
@@ -228,6 +224,10 @@ namespace GuardScheduler.Services
                 .Where(p => !assignedByPostName.Any(kvp => kvp.Key != post.Name && kvp.Value.Contains(p.Id)))
                 .ToList();
 
+            // Restrict MoafAzRazm to "ضلع غربی"
+            if (post.Name != "ضلع غربی")
+                availablePersons = availablePersons.Where(p => p.PrimaryRole != Role.MoafAzRazm).ToList();
+
             if (!availablePersons.Any()) return null;
 
             var role = availablePersons.First().PrimaryRole;
@@ -239,6 +239,11 @@ namespace GuardScheduler.Services
             if (_postRotationQueues.ContainsKey(post.Id)) return;
 
             var pool = rolePools[role];
+
+            // Restrict MoafAzRazm pool to "ضلع غربی"
+            if (role == Role.MoafAzRazm && post.Name != "ضلع غربی")
+                pool = new List<int>();
+
             if (pool.Count < count)
                 throw new InvalidOperationException($"Not enough available personnel for {role} on post {post.Name}");
 

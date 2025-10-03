@@ -30,7 +30,9 @@ namespace GuardScheduler
             _personRepo = personRepo;
             _postRepo = postRepo;
             _scheduleRepo = scheduleRepo;
-
+            var persons = (from p in personRepo.GetAll()
+                          where p.PrimaryRole == Role.MoafAzRazm
+                           select p).ToList();
             _personRepo.PersonChanged += (s, e) =>
             {
                 // Only regenerate schedule if the person became available/unavailable

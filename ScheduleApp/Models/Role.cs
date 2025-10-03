@@ -9,6 +9,7 @@
         KomakAshpaz,
         Negahban,
         AfsarGharargah,
-        MohandesProject
+        MohandesProject,
+        MoafAzRazm
     }
 }
