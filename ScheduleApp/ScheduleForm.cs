@@ -34,7 +34,7 @@ namespace GuardScheduler
             dateTimePickerFrom.Value = DateTime.Now;
             dateTimePickerTo.Value = DateTime.Now;
 
-            // Create separate grids for categories
+            // Setup grids
             SetupGrid(dgv24HourPosts, "پست‌های ۲۴ ساعته");
             SetupGrid(dgvNegahban, "نگهبان");
             SetupGrid(dgvPasbakhsh, "پاس‌بخش");
@@ -46,7 +46,6 @@ namespace GuardScheduler
             dgv.Columns.Clear();
             dgv.Columns.Add("Post", "پست");
 
-            // Add columns for each hour of the day
             for (int hour = 0; hour < 24; hour++)
             {
                 dgv.Columns.Add($"H{hour}", hour.ToString("00") + ":00");
@@ -57,7 +56,6 @@ namespace GuardScheduler
             dgv.AllowUserToAddRows = false;
             dgv.ReadOnly = true;
 
-            // Optional: group box title
             dgv.Parent.Text = title;
         }
 
@@ -86,21 +84,18 @@ namespace GuardScheduler
             }
             _scheduleRepo.SaveScheduleDays(newSchedule);
 
-            // --- Display schedule in different timetables ---
             foreach (var day in newSchedule)
             {
                 string jalaliDate = new PersianDateTime(day.Date).ToString("yyyy/MM/dd");
 
-                // Group slots by post
                 var posts = day.ShiftSlots.GroupBy(s => s.PostId);
                 foreach (var postGroup in posts)
                 {
                     var post = _postRepo.GetById(postGroup.Key);
                     if (post == null) continue;
 
-                    // Build row for this post
                     var rowCells = new object[25];
-                    rowCells[0] = $"{post.Name} ({jalaliDate})"; // first cell = post name
+                    rowCells[0] = $"{post.Name} ({jalaliDate})";
 
                     foreach (var slot in postGroup)
                     {
@@ -109,21 +104,24 @@ namespace GuardScheduler
                         {
                             var person = _personRepo.GetById(assignment.PersonId);
                             string personName = person != null ? $"{person.FirstName} {person.LastName}" : "بدون نگهبان";
-
-                            int colIndex = slot.Start.Hours; // map hour → column
+                            int colIndex = slot.Start.Hours;
                             rowCells[colIndex + 1] = personName;
                         }
                     }
 
-                    // Decide which grid to add row to
-                    if (post.AllowedRoles.Contains(Role.Negahban))
+                    // Display "نیروی آماده" with 24-hour posts
+                    if (post.Name == "نیروی آماده" || (!post.AllowedRoles.Contains(Role.Negahban)
+                        && !post.AllowedRoles.Contains(Role.PasBakhsh)
+                        && !post.AllowedRoles.Contains(Role.Dezhban)))
+                    {
+                        dgv24HourPosts.Rows.Add(rowCells);
+                    }
+                    else if (post.AllowedRoles.Contains(Role.Negahban))
                         dgvNegahban.Rows.Add(rowCells);
                     else if (post.AllowedRoles.Contains(Role.PasBakhsh))
                         dgvPasbakhsh.Rows.Add(rowCells);
                     else if (post.AllowedRoles.Contains(Role.Dezhban))
                         dgvDezhban.Rows.Add(rowCells);
-                    else
-                        dgv24HourPosts.Rows.Add(rowCells);
                 }
             }
         }

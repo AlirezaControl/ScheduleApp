@@ -48,7 +48,7 @@ namespace GuardScheduler
             this.labelFromDate.Location = new System.Drawing.Point(14, 19);
             this.labelFromDate.Name = "labelFromDate";
             this.labelFromDate.Size = new System.Drawing.Size(58, 20);
-            this.labelFromDate.TabIndex = 0;
+            this.labelFromDate.TabIndex = 8;
             this.labelFromDate.Text = "از تاریخ:";
             // 
             // labelToDate
@@ -57,7 +57,7 @@ namespace GuardScheduler
             this.labelToDate.Location = new System.Drawing.Point(14, 62);
             this.labelToDate.Name = "labelToDate";
             this.labelToDate.Size = new System.Drawing.Size(54, 20);
-            this.labelToDate.TabIndex = 1;
+            this.labelToDate.TabIndex = 7;
             this.labelToDate.Text = "تا تاریخ:";
             // 
             // btnGenerateSchedule
@@ -65,79 +65,58 @@ namespace GuardScheduler
             this.btnGenerateSchedule.Location = new System.Drawing.Point(101, 100);
             this.btnGenerateSchedule.Name = "btnGenerateSchedule";
             this.btnGenerateSchedule.Size = new System.Drawing.Size(225, 38);
-            this.btnGenerateSchedule.TabIndex = 4;
+            this.btnGenerateSchedule.TabIndex = 6;
             this.btnGenerateSchedule.Text = "تولید برنامه";
-            this.btnGenerateSchedule.UseVisualStyleBackColor = true;
             this.btnGenerateSchedule.Click += new System.EventHandler(this.btnGenerateSchedule_Click);
             // 
             // dateTimePickerFrom
             // 
-            this.dateTimePickerFrom.Font = new System.Drawing.Font("Tahoma", 8.25F);
+            this.dateTimePickerFrom.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(178)));
             this.dateTimePickerFrom.Location = new System.Drawing.Point(151, 19);
-            this.dateTimePickerFrom.MaximumSize = new System.Drawing.Size(500, 500);
+            this.dateTimePickerFrom.MaximumSize = new System.Drawing.Size(93, 19);
             this.dateTimePickerFrom.MinimumSize = new System.Drawing.Size(93, 19);
             this.dateTimePickerFrom.Name = "dateTimePickerFrom";
-            this.dateTimePickerFrom.Size = new System.Drawing.Size(189, 31);
-            this.dateTimePickerFrom.TabIndex = 6;
+            this.dateTimePickerFrom.Size = new System.Drawing.Size(93, 19);
+            this.dateTimePickerFrom.TabIndex = 5;
             this.dateTimePickerFrom.Value = null;
             // 
             // dateTimePickerTo
             // 
-            this.dateTimePickerTo.Font = new System.Drawing.Font("Tahoma", 8.25F);
+            this.dateTimePickerTo.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(178)));
             this.dateTimePickerTo.Location = new System.Drawing.Point(151, 62);
-            this.dateTimePickerTo.MaximumSize = new System.Drawing.Size(500, 500);
+            this.dateTimePickerTo.MaximumSize = new System.Drawing.Size(93, 19);
             this.dateTimePickerTo.MinimumSize = new System.Drawing.Size(93, 19);
             this.dateTimePickerTo.Name = "dateTimePickerTo";
-            this.dateTimePickerTo.Size = new System.Drawing.Size(189, 31);
-            this.dateTimePickerTo.TabIndex = 7;
+            this.dateTimePickerTo.Size = new System.Drawing.Size(93, 19);
+            this.dateTimePickerTo.TabIndex = 4;
             this.dateTimePickerTo.Value = null;
             // 
             // dgv24HourPosts
             // 
-            this.dgv24HourPosts.AllowUserToAddRows = false;
-            this.dgv24HourPosts.AllowUserToDeleteRows = false;
-            this.dgv24HourPosts.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgv24HourPosts.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dgv24HourPosts.Location = new System.Drawing.Point(3, 22);
+            this.dgv24HourPosts.Location = new System.Drawing.Point(6, 25);
             this.dgv24HourPosts.Name = "dgv24HourPosts";
-            this.dgv24HourPosts.ReadOnly = true;
-            this.dgv24HourPosts.Size = new System.Drawing.Size(694, 175);
+            this.dgv24HourPosts.Size = new System.Drawing.Size(688, 150);
             this.dgv24HourPosts.TabIndex = 0;
             // 
             // dgvNegahban
             // 
-            this.dgvNegahban.AllowUserToAddRows = false;
-            this.dgvNegahban.AllowUserToDeleteRows = false;
-            this.dgvNegahban.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvNegahban.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dgvNegahban.Location = new System.Drawing.Point(3, 22);
+            this.dgvNegahban.Location = new System.Drawing.Point(6, 25);
             this.dgvNegahban.Name = "dgvNegahban";
-            this.dgvNegahban.ReadOnly = true;
-            this.dgvNegahban.Size = new System.Drawing.Size(694, 175);
+            this.dgvNegahban.Size = new System.Drawing.Size(688, 150);
             this.dgvNegahban.TabIndex = 0;
             // 
             // dgvPasbakhsh
             // 
-            this.dgvPasbakhsh.AllowUserToAddRows = false;
-            this.dgvPasbakhsh.AllowUserToDeleteRows = false;
-            this.dgvPasbakhsh.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvPasbakhsh.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dgvPasbakhsh.Location = new System.Drawing.Point(3, 22);
+            this.dgvPasbakhsh.Location = new System.Drawing.Point(15, 25);
             this.dgvPasbakhsh.Name = "dgvPasbakhsh";
-            this.dgvPasbakhsh.ReadOnly = true;
-            this.dgvPasbakhsh.Size = new System.Drawing.Size(694, 175);
+            this.dgvPasbakhsh.Size = new System.Drawing.Size(679, 150);
             this.dgvPasbakhsh.TabIndex = 0;
             // 
             // dgvDezhban
             // 
-            this.dgvDezhban.AllowUserToAddRows = false;
-            this.dgvDezhban.AllowUserToDeleteRows = false;
-            this.dgvDezhban.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvDezhban.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dgvDezhban.Location = new System.Drawing.Point(3, 22);
+            this.dgvDezhban.Location = new System.Drawing.Point(15, 25);
             this.dgvDezhban.Name = "dgvDezhban";
-            this.dgvDezhban.ReadOnly = true;
-            this.dgvDezhban.Size = new System.Drawing.Size(694, 175);
+            this.dgvDezhban.Size = new System.Drawing.Size(679, 150);
             this.dgvDezhban.TabIndex = 0;
             // 
             // grp24Hour
@@ -146,7 +125,8 @@ namespace GuardScheduler
             this.grp24Hour.Location = new System.Drawing.Point(17, 150);
             this.grp24Hour.Name = "grp24Hour";
             this.grp24Hour.Size = new System.Drawing.Size(700, 200);
-            this.grp24Hour.TabIndex = 8;
+            this.grp24Hour.TabIndex = 3;
+            this.grp24Hour.TabStop = false;
             this.grp24Hour.Text = "پست‌های ۲۴ ساعته";
             // 
             // grpNegahban
@@ -155,7 +135,8 @@ namespace GuardScheduler
             this.grpNegahban.Location = new System.Drawing.Point(17, 360);
             this.grpNegahban.Name = "grpNegahban";
             this.grpNegahban.Size = new System.Drawing.Size(700, 200);
-            this.grpNegahban.TabIndex = 9;
+            this.grpNegahban.TabIndex = 2;
+            this.grpNegahban.TabStop = false;
             this.grpNegahban.Text = "نگهبان";
             // 
             // grpPasbakhsh
@@ -164,7 +145,8 @@ namespace GuardScheduler
             this.grpPasbakhsh.Location = new System.Drawing.Point(17, 570);
             this.grpPasbakhsh.Name = "grpPasbakhsh";
             this.grpPasbakhsh.Size = new System.Drawing.Size(700, 200);
-            this.grpPasbakhsh.TabIndex = 10;
+            this.grpPasbakhsh.TabIndex = 1;
+            this.grpPasbakhsh.TabStop = false;
             this.grpPasbakhsh.Text = "پاس‌بخش";
             // 
             // grpDezhban
@@ -173,14 +155,12 @@ namespace GuardScheduler
             this.grpDezhban.Location = new System.Drawing.Point(17, 780);
             this.grpDezhban.Name = "grpDezhban";
             this.grpDezhban.Size = new System.Drawing.Size(700, 200);
-            this.grpDezhban.TabIndex = 11;
+            this.grpDezhban.TabIndex = 0;
+            this.grpDezhban.TabStop = false;
             this.grpDezhban.Text = "دژبان";
             // 
             // ScheduleForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.AutoScroll = true;
             this.ClientSize = new System.Drawing.Size(1305, 1000);
             this.Controls.Add(this.grpDezhban);
             this.Controls.Add(this.grpPasbakhsh);
@@ -206,20 +186,20 @@ namespace GuardScheduler
 
         }
 
-        private System.Windows.Forms.Label labelFromDate;
-        private System.Windows.Forms.Label labelToDate;
-        private System.Windows.Forms.Button btnGenerateSchedule;
+        private Label labelFromDate;
+        private Label labelToDate;
+        private Button btnGenerateSchedule;
         private PersianDatePicker dateTimePickerFrom;
         private PersianDatePicker dateTimePickerTo;
 
-        private System.Windows.Forms.GroupBox grp24Hour;
-        private System.Windows.Forms.GroupBox grpNegahban;
-        private System.Windows.Forms.GroupBox grpPasbakhsh;
-        private System.Windows.Forms.GroupBox grpDezhban;
+        private GroupBox grp24Hour;
+        private GroupBox grpNegahban;
+        private GroupBox grpPasbakhsh;
+        private GroupBox grpDezhban;
 
-        private System.Windows.Forms.DataGridView dgv24HourPosts;
-        private System.Windows.Forms.DataGridView dgvNegahban;
-        private System.Windows.Forms.DataGridView dgvPasbakhsh;
-        private System.Windows.Forms.DataGridView dgvDezhban;
+        private DataGridView dgv24HourPosts;
+        private DataGridView dgvNegahban;
+        private DataGridView dgvPasbakhsh;
+        private DataGridView dgvDezhban;
     }
 }
