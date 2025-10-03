@@ -42,6 +42,7 @@ namespace GuardScheduler.Data
                     SecondaryRoleId INTEGER,
                     RotationOrder INTEGER NOT NULL DEFAULT 0,
                     AllowedPosts TEXT, -- CSV of post names
+                    Available INTEGER NOT NULL DEFAULT 1, -- new column
                     FOREIGN KEY(PrimaryRoleId) REFERENCES Role(Id),
                     FOREIGN KEY(SecondaryRoleId) REFERENCES Role(Id)
                 );";

@@ -34,7 +34,7 @@ namespace GuardScheduler.Services
 
         private void InitQueues()
         {
-            var people = _personRepo.GetAll();
+            var people = _personRepo.GetAll().Where(p => p.Available).ToList();
             foreach (Role role in Enum.GetValues(typeof(Role)))
             {
                 var list = people
@@ -67,7 +67,7 @@ namespace GuardScheduler.Services
             var rolePools = Enum.GetValues(typeof(Role))
                 .Cast<Role>()
                 .ToDictionary(r => r, r => _personRepo.GetAll()
-                    .Where(p => p.PrimaryRole == r)
+                    .Where(p => p.PrimaryRole == r && p.Available)
                     .OrderBy(p => p.RotationOrder)
                     .Select(p => p.Id)
                     .ToList()
@@ -191,6 +191,10 @@ namespace GuardScheduler.Services
             {
                 var personId = queue.DequeueAndRotate();
 
+                // Check if person is Available
+                var person = _personRepo.GetById(personId);
+                if (person == null || !person.Available) continue;
+
                 // allow multiple shifts on same post, but not across different post names
                 if (!assignedByPostName.Any(kvp => kvp.Key != postName && kvp.Value.Contains(personId)))
                     return personId;
@@ -206,6 +210,9 @@ namespace GuardScheduler.Services
                 while (attempts-- > 0)
                 {
                     var personId = queue.DequeueAndRotate();
+                    var person = _personRepo.GetById(personId);
+                    if (person == null || !person.Available) continue;
+
                     if (!assignedByPostName.Any(kvp => kvp.Value.Contains(personId)))
                         return personId;
                 }
@@ -216,6 +223,7 @@ namespace GuardScheduler.Services
         private int? AssignPersonToSlotAvoidingOtherPosts(Post post, Dictionary<string, HashSet<int>> assignedByPostName)
         {
             var availablePersons = _personRepo.GetAll()
+                .Where(p => p.Available)
                 .Where(p => post.AllowedRoles.Contains(p.PrimaryRole))
                 .Where(p => !assignedByPostName.Any(kvp => kvp.Key != post.Name && kvp.Value.Contains(p.Id)))
                 .ToList();
@@ -232,7 +240,7 @@ namespace GuardScheduler.Services
 
             var pool = rolePools[role];
             if (pool.Count < count)
-                throw new InvalidOperationException($"Not enough personnel for {role} on post {post.Name}");
+                throw new InvalidOperationException($"Not enough available personnel for {role} on post {post.Name}");
 
             var ids = pool.Take(count).ToList();
             foreach (var id in ids) pool.Remove(id);

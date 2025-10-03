@@ -1,19 +1,19 @@
-﻿using GuardScheduler.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using GuardScheduler.Models;
 
 namespace GuardScheduler.Data
 {
     public class PersonRepository : IPersonRepository
     {
         private readonly string _connString;
+
         public PersonRepository(string connString)
         {
             _connString = connString;
             DatabaseInitializer.Initialize(connString);
         }
-
 
         public List<Person> GetAll()
         {
@@ -22,7 +22,7 @@ namespace GuardScheduler.Data
             conn.Open();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-                SELECT Id, FirstName, LastName, PrimaryRoleId, SecondaryRoleId, RotationOrder, AllowedPosts
+                SELECT Id, FirstName, LastName, PrimaryRoleId, SecondaryRoleId, RotationOrder, AllowedPosts, Available
                 FROM Person;
             ";
             using var reader = cmd.ExecuteReader();
@@ -39,15 +39,13 @@ namespace GuardScheduler.Data
             conn.Open();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-                SELECT Id, FirstName, LastName, PrimaryRoleId, SecondaryRoleId, RotationOrder, AllowedPosts
+                SELECT Id, FirstName, LastName, PrimaryRoleId, SecondaryRoleId, RotationOrder, AllowedPosts, Available
                 FROM Person
                 WHERE Id=@id;
             ";
             cmd.Parameters.AddWithValue("@id", id);
-
             using var reader = cmd.ExecuteReader();
-            if (reader.Read())
-                return ReadPerson(reader);
+            if (reader.Read()) return ReadPerson(reader);
             return null;
         }
 
@@ -57,9 +55,9 @@ namespace GuardScheduler.Data
             conn.Open();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-                INSERT INTO Person
-                (FirstName, LastName, PrimaryRoleId, SecondaryRoleId, RotationOrder, AllowedPosts)
-                VALUES (@fn, @ln, @primary, @secondary, @order, @posts);
+                INSERT INTO Person 
+                (FirstName, LastName, PrimaryRoleId, SecondaryRoleId, RotationOrder, AllowedPosts, Available) 
+                VALUES (@fn, @ln, @primary, @secondary, @order, @posts, @available);
                 SELECT last_insert_rowid();
             ";
             cmd.Parameters.AddWithValue("@fn", p.FirstName);
@@ -68,7 +66,7 @@ namespace GuardScheduler.Data
             cmd.Parameters.AddWithValue("@secondary", p.SecondaryRole.HasValue ? (object)((int)p.SecondaryRole + 1) : DBNull.Value);
             cmd.Parameters.AddWithValue("@order", p.RotationOrder);
             cmd.Parameters.AddWithValue("@posts", string.Join(",", p.AllowedPostNames));
-
+            cmd.Parameters.AddWithValue("@available", p.Available ? 1 : 0);
             return Convert.ToInt32(cmd.ExecuteScalar());
         }
 
@@ -78,13 +76,9 @@ namespace GuardScheduler.Data
             conn.Open();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-                UPDATE Person SET
-                    FirstName=@fn,
-                    LastName=@ln,
-                    PrimaryRoleId=@primary,
-                    SecondaryRoleId=@secondary,
-                    RotationOrder=@order,
-                    AllowedPosts=@posts
+                UPDATE Person 
+                SET FirstName=@fn, LastName=@ln, PrimaryRoleId=@primary, SecondaryRoleId=@secondary, 
+                    RotationOrder=@order, AllowedPosts=@posts, Available=@available 
                 WHERE Id=@id;
             ";
             cmd.Parameters.AddWithValue("@fn", p.FirstName);
@@ -93,8 +87,8 @@ namespace GuardScheduler.Data
             cmd.Parameters.AddWithValue("@secondary", p.SecondaryRole.HasValue ? (object)((int)p.SecondaryRole + 1) : DBNull.Value);
             cmd.Parameters.AddWithValue("@order", p.RotationOrder);
             cmd.Parameters.AddWithValue("@posts", string.Join(",", p.AllowedPostNames));
+            cmd.Parameters.AddWithValue("@available", p.Available ? 1 : 0);
             cmd.Parameters.AddWithValue("@id", p.Id);
-
             cmd.ExecuteNonQuery();
         }
 
@@ -118,7 +112,8 @@ namespace GuardScheduler.Data
                 PrimaryRole = (Role)(reader.GetInt32(3) - 1),
                 SecondaryRole = reader.IsDBNull(4) ? null : (Role?)(reader.GetInt32(4) - 1),
                 RotationOrder = reader.GetInt32(5),
-                AllowedPostNames = reader.IsDBNull(6) ? new List<string>() : new List<string>(reader.GetString(6).Split(','))
+                AllowedPostNames = reader.IsDBNull(6) ? new List<string>() : new List<string>(reader.GetString(6).Split(',')),
+                Available = !reader.IsDBNull(7) && reader.GetInt32(7) == 1
             };
         }
     }
