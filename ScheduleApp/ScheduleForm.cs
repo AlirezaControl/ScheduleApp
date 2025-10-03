@@ -4,6 +4,8 @@ using System.Windows.Forms;
 using GuardScheduler.Models;
 using GuardScheduler.Services;
 using GuardScheduler.Data;
+using PersianDateTimeControl;
+using MD.PersianDateTime;
 
 namespace GuardScheduler
 {
@@ -11,84 +13,69 @@ namespace GuardScheduler
     {
         private readonly ISchedulerService _schedulerService;
         private readonly IAssignmentRepository _assignmentRepo;
-        private readonly IPersonRepository _personRepo; // Reference to person repository
-        private readonly IPostRepository _postRepo; // Reference to post repository
+        private readonly IPersonRepository _personRepo;
+        private readonly IPostRepository _postRepo;
 
         public ScheduleForm(ISchedulerService schedulerService, IAssignmentRepository assignmentRepo, IPersonRepository personRepo, IPostRepository postRepo)
         {
             InitializeComponent();
             _schedulerService = schedulerService;
             _assignmentRepo = assignmentRepo;
-            _personRepo = personRepo; // Initialize the Person repository
-            _postRepo = postRepo; // Initialize the Post repository
+            _personRepo = personRepo;
+            _postRepo = postRepo;
 
-            // Set the DateTimePickers to the current Jalali date
-            DateTime currentDate = DateTime.UtcNow;
-            var jalaliDate = JalaliDateHelper.ToJalali(currentDate);
-            dateTimePickerFrom.Value = JalaliDateHelper.FromJalali(jalaliDate.Year, jalaliDate.Month, jalaliDate.Day);
-            dateTimePickerTo.Value = dateTimePickerFrom.Value; // Initialize to the same date
+            // PersianDatePicker already shows current Jalali date by default
+            dateTimePickerFrom.Value = DateTime.Now;
+            dateTimePickerTo.Value = DateTime.Now;
         }
 
         private void btnGenerateSchedule_Click(object sender, EventArgs e)
         {
-            // Clear the previous schedule
+            // Clear old items
             listBoxSchedule.Items.Clear();
 
-            // Convert selected Jalali dates back to Miladi
-            DateTime fromDate = JalaliDateHelper.FromJalali(
-                JalaliDateHelper.ToJalali(dateTimePickerFrom.Value).Year,
-                JalaliDateHelper.ToJalali(dateTimePickerFrom.Value).Month,
-                JalaliDateHelper.ToJalali(dateTimePickerFrom.Value).Day
-            );
+            // PersianDatePicker.Value gives a DateTime directly (internally converted)
+            DateTime fromDate = dateTimePickerFrom.Value.Value;
+            DateTime toDate = dateTimePickerTo.Value.Value;
 
-            DateTime toDate = JalaliDateHelper.FromJalali(
-                JalaliDateHelper.ToJalali(dateTimePickerTo.Value).Year,
-                JalaliDateHelper.ToJalali(dateTimePickerTo.Value).Month,
-                JalaliDateHelper.ToJalali(dateTimePickerTo.Value).Day
-            );
-
-            // Validate date range
+            // Validation
             if (fromDate > toDate)
             {
-                MessageBox.Show("The From Date must be earlier than the To Date.", "Invalid Date Range", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("تاریخ شروع باید قبل از تاریخ پایان باشد.", "خطا", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             // Generate the schedule
             List<ScheduleDay> scheduleDays = _schedulerService.GenerateSchedule(fromDate, toDate);
 
-            // Display the generated schedule in Jalali format
+            // Display results (convert back to Persian string for UI)
             foreach (var day in scheduleDays)
             {
-                var jalaliDate = JalaliDateHelper.ToJalaliString(day.Date);
-                listBoxSchedule.Items.Add($"Schedule for {jalaliDate}:");
+                string jalaliDate = new PersianDateTime(day.Date).ToString("yyyy/MM/dd");
+                listBoxSchedule.Items.Add($"برنامه روز {jalaliDate}:");
 
                 foreach (var slot in day.ShiftSlots)
                 {
-                    // Fetch assignments for the slot from the assignment repository
                     List<Assignment> assignments = _assignmentRepo.GetAssignmentsForSlot(slot.Id);
-
-                    // Get the post name using the PostId from the slot
                     var post = _postRepo.GetById(slot.PostId);
 
                     if (assignments.Count > 0)
                     {
                         foreach (var assignment in assignments)
                         {
-                            // Get the person's name using the PersonId from the assignment
                             var person = _personRepo.GetById(assignment.PersonId);
-                            string personName = person != null ? $"{person.FirstName} {person.LastName}" : "Unknown";
+                            string personName = person != null ? $"{person.FirstName} {person.LastName}" : "ناشناس";
 
-                            listBoxSchedule.Items.Add($"  Post: {post?.Name ?? "Unknown"}, Start: {slot.Start}, Duration: {slot.DurationHours} hours, Assigned to: {personName}");
+                            listBoxSchedule.Items.Add($"  پست: {post?.Name ?? "ناشناس"}, شروع: {slot.Start}, مدت: {slot.DurationHours} ساعت، نگهبان: {personName}");
                         }
                     }
                     else
                     {
-                        listBoxSchedule.Items.Add($"  Post: {post?.Name ?? "Unknown"}, Start: {slot.Start}, Duration: {slot.DurationHours} hours, Unassigned");
+                        listBoxSchedule.Items.Add($"  پست: {post?.Name ?? "ناشناس"}, شروع: {slot.Start}, مدت: {slot.DurationHours} ساعت، بدون نگهبان");
                     }
                 }
 
-                listBoxSchedule.Items.Add(""); // Add a blank line for better readability
+                listBoxSchedule.Items.Add(""); // blank line
             }
         }
     }

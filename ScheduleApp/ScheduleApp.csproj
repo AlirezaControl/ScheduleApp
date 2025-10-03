@@ -52,8 +52,14 @@
     <Reference Include="ExcelNumberFormat, Version=1.1.0.0, Culture=neutral, PublicKeyToken=23c6f5d73be07eca, processorArchitecture=MSIL">
       <HintPath>..\packages\ExcelNumberFormat.1.1.0\lib\net20\ExcelNumberFormat.dll</HintPath>
     </Reference>
+    <Reference Include="MD.PersianDateTime, Version=4.5.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MD.PersianDateTime.4.5.0\lib\net20\MD.PersianDateTime.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Bcl.HashCode, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.HashCode.1.1.1\lib\net461\Microsoft.Bcl.HashCode.dll</HintPath>
+    </Reference>
+    <Reference Include="PersianDateTimeControl, Version=1400.5.11.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PersianDateTimeControl.2.0.1\lib\net20\PersianDateTimeControl.dll</HintPath>
     </Reference>
     <Reference Include="RBush, Version=4.0.0.0, Culture=neutral, PublicKeyToken=c77e27b81f4d0187, processorArchitecture=MSIL">
       <HintPath>..\packages\RBush.Signed.4.0.0\lib\net47\RBush.dll</HintPath>
@@ -153,6 +159,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="ScheduleForm.resx">
+      <DependentUpon>ScheduleForm.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
