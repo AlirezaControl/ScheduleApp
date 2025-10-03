@@ -92,5 +92,25 @@ namespace GuardScheduler.Data
                 AssignedAt = reader.GetDateTime(3)
             };
         }
+
+        public List<Assignment> GetAssignmentsForSlot(int shiftSlotId)
+        {
+            var assignments = new List<Assignment>();
+            using var conn = new SQLiteConnection(_connString);
+            conn.Open();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+        SELECT Id, ShiftSlotId, PersonId, AssignedAt
+        FROM Assignment
+        WHERE ShiftSlotId = @shiftSlotId;";
+            cmd.Parameters.AddWithValue("@shiftSlotId", shiftSlotId);
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                assignments.Add(ReadAssignment(reader));
+            }
+            return assignments;
+        }
     }
 }

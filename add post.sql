@@ -7,6 +7,6 @@ VALUES
 ('نگهبان شرقی', 'Negahban', 3, 2, 1),
 ('نگهبان بالای دژبانی', 'Negahban', 3, 2, 1),
 ('نگهبان غربی', 'Negahban', 3, 2, 1),
-('نیروی آماده', 'PasBakhsh,Dezhban', 1, 24, 1), -- Adjust role if needed
+('نیروی آماده', 'PasBakhsh,Dezhban', 1, 24, 1),
 ('مسئول نظافت', 'GoruhB', 1, 24, 0),
 ('افسر قرارگاه', 'AfsarGharargah', 1, 24, 0)

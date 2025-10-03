@@ -3,17 +3,24 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using GuardScheduler.Models;
 using GuardScheduler.Services;
+using GuardScheduler.Data;
 
 namespace GuardScheduler
 {
     public partial class ScheduleForm : Form
     {
         private readonly ISchedulerService _schedulerService;
+        private readonly IAssignmentRepository _assignmentRepo;
+        private readonly IPersonRepository _personRepo; // Reference to person repository
+        private readonly IPostRepository _postRepo; // Reference to post repository
 
-        public ScheduleForm(ISchedulerService schedulerService)
+        public ScheduleForm(ISchedulerService schedulerService, IAssignmentRepository assignmentRepo, IPersonRepository personRepo, IPostRepository postRepo)
         {
             InitializeComponent();
             _schedulerService = schedulerService;
+            _assignmentRepo = assignmentRepo;
+            _personRepo = personRepo; // Initialize the Person repository
+            _postRepo = postRepo; // Initialize the Post repository
 
             // Set the DateTimePickers to the current Jalali date
             DateTime currentDate = DateTime.UtcNow;
@@ -28,10 +35,17 @@ namespace GuardScheduler
             listBoxSchedule.Items.Clear();
 
             // Convert selected Jalali dates back to Miladi
-            var jalaliFromDate = JalaliDateHelper.ToJalali(dateTimePickerFrom.Value);
-            var jalaliToDate = JalaliDateHelper.ToJalali(dateTimePickerTo.Value);
-            DateTime fromDate = JalaliDateHelper.FromJalali(jalaliFromDate.Year, jalaliFromDate.Month, jalaliFromDate.Day);
-            DateTime toDate = JalaliDateHelper.FromJalali(jalaliToDate.Year, jalaliToDate.Month, jalaliToDate.Day);
+            DateTime fromDate = JalaliDateHelper.FromJalali(
+                JalaliDateHelper.ToJalali(dateTimePickerFrom.Value).Year,
+                JalaliDateHelper.ToJalali(dateTimePickerFrom.Value).Month,
+                JalaliDateHelper.ToJalali(dateTimePickerFrom.Value).Day
+            );
+
+            DateTime toDate = JalaliDateHelper.FromJalali(
+                JalaliDateHelper.ToJalali(dateTimePickerTo.Value).Year,
+                JalaliDateHelper.ToJalali(dateTimePickerTo.Value).Month,
+                JalaliDateHelper.ToJalali(dateTimePickerTo.Value).Day
+            );
 
             // Validate date range
             if (fromDate > toDate)
@@ -51,31 +65,31 @@ namespace GuardScheduler
 
                 foreach (var slot in day.ShiftSlots)
                 {
-                    // Assuming you have a method to get assignments for the slot
-                    List<Assignment> assignments = GetAssignmentsForSlot(slot.Id); // Placeholder method
+                    // Fetch assignments for the slot from the assignment repository
+                    List<Assignment> assignments = _assignmentRepo.GetAssignmentsForSlot(slot.Id);
+
+                    // Get the post name using the PostId from the slot
+                    var post = _postRepo.GetById(slot.PostId);
 
                     if (assignments.Count > 0)
                     {
                         foreach (var assignment in assignments)
                         {
-                            listBoxSchedule.Items.Add($"  Post ID: {slot.PostId}, Start: {slot.Start}, Duration: {slot.DurationHours} hours, Assigned to Person ID: {assignment.PersonId}");
+                            // Get the person's name using the PersonId from the assignment
+                            var person = _personRepo.GetById(assignment.PersonId);
+                            string personName = person != null ? $"{person.FirstName} {person.LastName}" : "Unknown";
+
+                            listBoxSchedule.Items.Add($"  Post: {post?.Name ?? "Unknown"}, Start: {slot.Start}, Duration: {slot.DurationHours} hours, Assigned to: {personName}");
                         }
                     }
                     else
                     {
-                        listBoxSchedule.Items.Add($"  Post ID: {slot.PostId}, Start: {slot.Start}, Duration: {slot.DurationHours} hours, Unassigned");
+                        listBoxSchedule.Items.Add($"  Post: {post?.Name ?? "Unknown"}, Start: {slot.Start}, Duration: {slot.DurationHours} hours, Unassigned");
                     }
                 }
 
                 listBoxSchedule.Items.Add(""); // Add a blank line for better readability
             }
-        }
-
-        private List<Assignment> GetAssignmentsForSlot(int shiftSlotId)
-        {
-            // This method should return the list of assignments for a specific shift slot ID
-            // You would typically fetch this from your assignment repository or service
-            return new List<Assignment>(); // Placeholder return
         }
     }
 }

@@ -32,7 +32,7 @@ namespace ScheduleApp
             var schedulerService = new SchedulerService(personRepository, postRepository, assignmentRepository, schedulerOptions);
 
             // Initialize and run the main form (ScheduleForm)
-            Application.Run(new ScheduleForm(schedulerService));
+            Application.Run(new ScheduleForm(schedulerService,assignmentRepository,personRepository,postRepository));
         }
     }
 }

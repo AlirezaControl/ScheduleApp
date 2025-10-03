@@ -67,6 +67,9 @@
             // 
             // listBoxSchedule
             // 
+            this.listBoxSchedule.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.listBoxSchedule.FormattingEnabled = true;
             this.listBoxSchedule.ItemHeight = 16;
             this.listBoxSchedule.Location = new System.Drawing.Point(15, 120);

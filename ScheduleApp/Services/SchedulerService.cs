@@ -69,10 +69,45 @@ namespace GuardScheduler.Services
                         SlotIndex = idx
                     };
                     day.ShiftSlots.Add(slot);
+
+                    // Assign a person to the slot based on availability and role
+                    var assignedPersonId = AssignPersonToSlot(post);
+                    if (assignedPersonId != null)
+                    {
+                        // Create an assignment object
+                        var assignment = new Assignment
+                        {
+                            ShiftSlotId = slot.Id, // Assuming slot has a unique Id
+                            PersonId = assignedPersonId.Value,
+                            AssignedAt = DateTime.UtcNow
+                        };
+
+                        // Save the assignment to the database
+                        _assignmentRepo.Insert(assignment); // Call the insert method
+                    }
                 }
             }
 
             return day;
+        }
+
+        // This method should return the ID of the assigned person or null if no one is available
+        private int? AssignPersonToSlot(Post post)
+        {
+            var availablePersons = _personRepo.GetAll();
+            foreach (Person p in availablePersons)
+            {
+                if (post.AllowedRoles.Contains(p.PrimaryRole))
+                {
+                    return p.Id;
+                }
+            }
+
+            // Implement any additional logic to select a person from availablePersons
+            // For example, you might want to round-robin assign or choose based on availability
+
+            // Example: Just return the first available person's ID for simplicity
+            return availablePersons.FirstOrDefault()?.Id;
         }
     }
 }
