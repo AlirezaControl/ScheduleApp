@@ -16,26 +16,34 @@ namespace GuardScheduler
             _personRepository = personRepository;
             _person = person;
 
-            LoadPersonData();
             LoadRoles();
+            LoadPersonData();
+        }
+
+        private void LoadRoles()
+        {
+            comboBoxPrimaryRole.Items.Clear();
+            comboBoxSecondaryRole.Items.Clear();
+
+            foreach (Role role in Enum.GetValues(typeof(Role)))
+            {
+                comboBoxPrimaryRole.Items.Add(role);
+                comboBoxSecondaryRole.Items.Add(role);
+            }
+
+            // Set current roles as default selection
+            comboBoxPrimaryRole.SelectedItem = _person.PrimaryRole;
+            if (_person.SecondaryRole.HasValue)
+                comboBoxSecondaryRole.SelectedItem = _person.SecondaryRole.Value;
+            else
+                comboBoxSecondaryRole.SelectedIndex = -1;
         }
 
         private void LoadPersonData()
         {
             txtFirstName.Text = _person.FirstName;
             txtLastName.Text = _person.LastName;
-            comboBoxPrimaryRole.SelectedItem = _person.PrimaryRole.ToString();
-            comboBoxSecondaryRole.SelectedItem = _person.SecondaryRole?.ToString();
             checkBoxAvailable.Checked = _person.Available; // Load availability
-        }
-
-        private void LoadRoles()
-        {
-            foreach (var role in Enum.GetValues(typeof(Role)))
-            {
-                comboBoxPrimaryRole.Items.Add(role);
-                comboBoxSecondaryRole.Items.Add(role);
-            }
         }
 
         private void btnSave_Click(object sender, EventArgs e)
