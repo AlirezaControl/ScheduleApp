@@ -35,28 +35,24 @@ namespace GuardScheduler
             dateTimePickerTo.Value = DateTime.Now;
 
             // Setup grids
-            SetupGrid(dgv24HourPosts, "پست‌های ۲۴ ساعته");
-            SetupGrid(dgvNegahban, "نگهبان");
-            SetupGrid(dgvPasbakhsh, "پاس‌بخش");
-            SetupGrid(dgvDezhban, "دژبان");
+            SetupGrid(dgv24HourPosts);
+            SetupGrid(dgvNegahban);
+            SetupGrid(dgvPasbakhsh);
+            SetupGrid(dgvDezhban);
         }
 
-        private void SetupGrid(DataGridView dgv, string title)
+        private void SetupGrid(DataGridView dgv)
         {
             dgv.Columns.Clear();
             dgv.Columns.Add("Post", "پست");
 
             for (int hour = 0; hour < 24; hour++)
-            {
                 dgv.Columns.Add($"H{hour}", hour.ToString("00") + ":00");
-            }
 
             dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
             dgv.RowHeadersVisible = false;
             dgv.AllowUserToAddRows = false;
             dgv.ReadOnly = true;
-
-            dgv.Parent.Text = title;
         }
 
         private void btnGenerateSchedule_Click(object sender, EventArgs e)
@@ -109,7 +105,7 @@ namespace GuardScheduler
                         }
                     }
 
-                    // Display "نیروی آماده" with 24-hour posts
+                    // Assign to proper grid
                     if (post.Name == "نیروی آماده" || (!post.AllowedRoles.Contains(Role.Negahban)
                         && !post.AllowedRoles.Contains(Role.PasBakhsh)
                         && !post.AllowedRoles.Contains(Role.Dezhban)))
@@ -123,6 +119,15 @@ namespace GuardScheduler
                     else if (post.AllowedRoles.Contains(Role.Dezhban))
                         dgvDezhban.Rows.Add(rowCells);
                 }
+            }
+        }
+
+        private void btnOpenPersonList_Click(object sender, EventArgs e)
+        {
+            // Open PersonListForm
+            using (var personListForm = new PersonListForm(_personRepo))
+            {
+                personListForm.ShowDialog();
             }
         }
     }

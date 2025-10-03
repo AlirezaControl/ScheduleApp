@@ -22,6 +22,7 @@ namespace GuardScheduler
             this.labelFromDate = new System.Windows.Forms.Label();
             this.labelToDate = new System.Windows.Forms.Label();
             this.btnGenerateSchedule = new System.Windows.Forms.Button();
+            this.btnOpenPersonList = new System.Windows.Forms.Button();
             this.dateTimePickerFrom = new PersianDateTimeControl.PersianDatePicker();
             this.dateTimePickerTo = new PersianDateTimeControl.PersianDatePicker();
             this.dgv24HourPosts = new System.Windows.Forms.DataGridView();
@@ -48,7 +49,7 @@ namespace GuardScheduler
             this.labelFromDate.Location = new System.Drawing.Point(14, 19);
             this.labelFromDate.Name = "labelFromDate";
             this.labelFromDate.Size = new System.Drawing.Size(58, 20);
-            this.labelFromDate.TabIndex = 8;
+            this.labelFromDate.TabIndex = 9;
             this.labelFromDate.Text = "از تاریخ:";
             // 
             // labelToDate
@@ -57,7 +58,7 @@ namespace GuardScheduler
             this.labelToDate.Location = new System.Drawing.Point(14, 62);
             this.labelToDate.Name = "labelToDate";
             this.labelToDate.Size = new System.Drawing.Size(54, 20);
-            this.labelToDate.TabIndex = 7;
+            this.labelToDate.TabIndex = 8;
             this.labelToDate.Text = "تا تاریخ:";
             // 
             // btnGenerateSchedule
@@ -65,9 +66,18 @@ namespace GuardScheduler
             this.btnGenerateSchedule.Location = new System.Drawing.Point(101, 100);
             this.btnGenerateSchedule.Name = "btnGenerateSchedule";
             this.btnGenerateSchedule.Size = new System.Drawing.Size(225, 38);
-            this.btnGenerateSchedule.TabIndex = 6;
+            this.btnGenerateSchedule.TabIndex = 7;
             this.btnGenerateSchedule.Text = "تولید برنامه";
             this.btnGenerateSchedule.Click += new System.EventHandler(this.btnGenerateSchedule_Click);
+            // 
+            // btnOpenPersonList
+            // 
+            this.btnOpenPersonList.Location = new System.Drawing.Point(350, 100);
+            this.btnOpenPersonList.Name = "btnOpenPersonList";
+            this.btnOpenPersonList.Size = new System.Drawing.Size(150, 38);
+            this.btnOpenPersonList.TabIndex = 0;
+            this.btnOpenPersonList.Text = "لیست افراد";
+            this.btnOpenPersonList.Click += new System.EventHandler(this.btnOpenPersonList_Click);
             // 
             // dateTimePickerFrom
             // 
@@ -77,7 +87,7 @@ namespace GuardScheduler
             this.dateTimePickerFrom.MinimumSize = new System.Drawing.Size(93, 19);
             this.dateTimePickerFrom.Name = "dateTimePickerFrom";
             this.dateTimePickerFrom.Size = new System.Drawing.Size(93, 19);
-            this.dateTimePickerFrom.TabIndex = 5;
+            this.dateTimePickerFrom.TabIndex = 6;
             this.dateTimePickerFrom.Value = null;
             // 
             // dateTimePickerTo
@@ -88,35 +98,35 @@ namespace GuardScheduler
             this.dateTimePickerTo.MinimumSize = new System.Drawing.Size(93, 19);
             this.dateTimePickerTo.Name = "dateTimePickerTo";
             this.dateTimePickerTo.Size = new System.Drawing.Size(93, 19);
-            this.dateTimePickerTo.TabIndex = 4;
+            this.dateTimePickerTo.TabIndex = 5;
             this.dateTimePickerTo.Value = null;
             // 
             // dgv24HourPosts
             // 
-            this.dgv24HourPosts.Location = new System.Drawing.Point(6, 25);
+            this.dgv24HourPosts.Location = new System.Drawing.Point(0, 25);
             this.dgv24HourPosts.Name = "dgv24HourPosts";
-            this.dgv24HourPosts.Size = new System.Drawing.Size(688, 150);
+            this.dgv24HourPosts.Size = new System.Drawing.Size(684, 150);
             this.dgv24HourPosts.TabIndex = 0;
             // 
             // dgvNegahban
             // 
             this.dgvNegahban.Location = new System.Drawing.Point(6, 25);
             this.dgvNegahban.Name = "dgvNegahban";
-            this.dgvNegahban.Size = new System.Drawing.Size(688, 150);
+            this.dgvNegahban.Size = new System.Drawing.Size(678, 150);
             this.dgvNegahban.TabIndex = 0;
             // 
             // dgvPasbakhsh
             // 
-            this.dgvPasbakhsh.Location = new System.Drawing.Point(15, 25);
+            this.dgvPasbakhsh.Location = new System.Drawing.Point(6, 25);
             this.dgvPasbakhsh.Name = "dgvPasbakhsh";
-            this.dgvPasbakhsh.Size = new System.Drawing.Size(679, 150);
+            this.dgvPasbakhsh.Size = new System.Drawing.Size(678, 150);
             this.dgvPasbakhsh.TabIndex = 0;
             // 
             // dgvDezhban
             // 
-            this.dgvDezhban.Location = new System.Drawing.Point(15, 25);
+            this.dgvDezhban.Location = new System.Drawing.Point(6, 25);
             this.dgvDezhban.Name = "dgvDezhban";
-            this.dgvDezhban.Size = new System.Drawing.Size(679, 150);
+            this.dgvDezhban.Size = new System.Drawing.Size(678, 150);
             this.dgvDezhban.TabIndex = 0;
             // 
             // grp24Hour
@@ -125,7 +135,7 @@ namespace GuardScheduler
             this.grp24Hour.Location = new System.Drawing.Point(17, 150);
             this.grp24Hour.Name = "grp24Hour";
             this.grp24Hour.Size = new System.Drawing.Size(700, 200);
-            this.grp24Hour.TabIndex = 3;
+            this.grp24Hour.TabIndex = 4;
             this.grp24Hour.TabStop = false;
             this.grp24Hour.Text = "پست‌های ۲۴ ساعته";
             // 
@@ -135,7 +145,7 @@ namespace GuardScheduler
             this.grpNegahban.Location = new System.Drawing.Point(17, 360);
             this.grpNegahban.Name = "grpNegahban";
             this.grpNegahban.Size = new System.Drawing.Size(700, 200);
-            this.grpNegahban.TabIndex = 2;
+            this.grpNegahban.TabIndex = 3;
             this.grpNegahban.TabStop = false;
             this.grpNegahban.Text = "نگهبان";
             // 
@@ -145,7 +155,7 @@ namespace GuardScheduler
             this.grpPasbakhsh.Location = new System.Drawing.Point(17, 570);
             this.grpPasbakhsh.Name = "grpPasbakhsh";
             this.grpPasbakhsh.Size = new System.Drawing.Size(700, 200);
-            this.grpPasbakhsh.TabIndex = 1;
+            this.grpPasbakhsh.TabIndex = 2;
             this.grpPasbakhsh.TabStop = false;
             this.grpPasbakhsh.Text = "پاس‌بخش";
             // 
@@ -155,14 +165,15 @@ namespace GuardScheduler
             this.grpDezhban.Location = new System.Drawing.Point(17, 780);
             this.grpDezhban.Name = "grpDezhban";
             this.grpDezhban.Size = new System.Drawing.Size(700, 200);
-            this.grpDezhban.TabIndex = 0;
+            this.grpDezhban.TabIndex = 1;
             this.grpDezhban.TabStop = false;
             this.grpDezhban.Text = "دژبان";
             // 
             // ScheduleForm
             // 
             this.AutoScroll = true;
-            this.ClientSize = new System.Drawing.Size(1299, 353);
+            this.ClientSize = new System.Drawing.Size(1299, 1000);
+            this.Controls.Add(this.btnOpenPersonList);
             this.Controls.Add(this.grpDezhban);
             this.Controls.Add(this.grpPasbakhsh);
             this.Controls.Add(this.grpNegahban);
@@ -190,6 +201,7 @@ namespace GuardScheduler
         private Label labelFromDate;
         private Label labelToDate;
         private Button btnGenerateSchedule;
+        private Button btnOpenPersonList;
         private PersianDatePicker dateTimePickerFrom;
         private PersianDatePicker dateTimePickerTo;
 
