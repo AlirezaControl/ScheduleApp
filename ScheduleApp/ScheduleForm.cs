@@ -31,6 +31,15 @@ namespace GuardScheduler
             _postRepo = postRepo;
             _scheduleRepo = scheduleRepo;
 
+            _personRepo.PersonChanged += (s, e) =>
+            {
+                // Only regenerate schedule if the person became available/unavailable
+                if (dateTimePickerFrom.Value != null && dateTimePickerTo.Value != null)
+                {
+                    btnGenerateSchedule_Click(null, null); // regenerate automatically
+                }
+            };
+
             dateTimePickerFrom.Value = DateTime.Now;
             dateTimePickerTo.Value = DateTime.Now;
 
@@ -166,5 +175,6 @@ namespace GuardScheduler
                 }
             }
         }
+
     }
 }

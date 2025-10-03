@@ -9,6 +9,8 @@ namespace GuardScheduler.Data
     {
         private readonly string _connString;
 
+        public event EventHandler<PersonChangedEventArgs> PersonChanged;
+
         public PersonRepository(string connString)
         {
             _connString = connString;
@@ -75,12 +77,9 @@ namespace GuardScheduler.Data
             using var conn = new SQLiteConnection(_connString);
             conn.Open();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-                UPDATE Person 
-                SET FirstName=@fn, LastName=@ln, PrimaryRoleId=@primary, SecondaryRoleId=@secondary, 
-                    RotationOrder=@order, AllowedPosts=@posts, Available=@available 
-                WHERE Id=@id;
-            ";
+            cmd.CommandText = @"UPDATE Person SET FirstName=@fn, LastName=@ln, PrimaryRoleId=@primary,
+                        SecondaryRoleId=@secondary, RotationOrder=@order, AllowedPosts=@posts, Available=@available
+                        WHERE Id=@id;";
             cmd.Parameters.AddWithValue("@fn", p.FirstName);
             cmd.Parameters.AddWithValue("@ln", p.LastName);
             cmd.Parameters.AddWithValue("@primary", (int)p.PrimaryRole + 1);
@@ -90,6 +89,8 @@ namespace GuardScheduler.Data
             cmd.Parameters.AddWithValue("@available", p.Available ? 1 : 0);
             cmd.Parameters.AddWithValue("@id", p.Id);
             cmd.ExecuteNonQuery();
+
+            PersonChanged?.Invoke(this, new PersonChangedEventArgs(p)); // Trigger event
         }
 
         public void Delete(int id)
