@@ -1,6 +1,0 @@
-Folder PATH listing
-Volume serial number is 00000038 A60B:FD90
-C:\USERS\ALIREZA\SOURCE\REPOS\SCHEDULEAPP\SCHEDULEAPP - COPY
-쳐컴Data
-쳐컴Models
-읕컴Services

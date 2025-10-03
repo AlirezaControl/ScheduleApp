@@ -99,8 +99,10 @@
     <Compile Include="Data\IAssignmentRepository.cs" />
     <Compile Include="Data\IPersonRepository.cs" />
     <Compile Include="Data\IPostRepository.cs" />
+    <Compile Include="Data\IShiftSlotRepository.cs" />
     <Compile Include="Data\PersonRepository.cs" />
     <Compile Include="Data\PostRepository.cs" />
+    <Compile Include="Data\ShiftSlotRepository.cs" />
     <Compile Include="Data\SQLiteRepositoryBase.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>

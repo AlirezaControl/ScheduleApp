@@ -1,33 +1,33 @@
-¦   Form1.cs
-¦   Form1.Designer.cs
-¦   PersonListForm.cs
-¦   PersonListForm.Designer.cs
-¦   PersonRoleForm.cs
-¦   PersonRoleForm.Designer.cs
-¦   Program.cs
-¦   project tree.txt
-¦   tree.txt
-¦
-+---Data
-¦       DatabaseInitializer.cs
-¦       IAssignmentRepository.cs
-¦       IPersonRepository.cs
-¦       IPostRepository.cs
-¦       PersonRepository.cs
-¦       SQLiteRepositoryBase.cs
-¦
-+---Models
-¦       Assignment.cs
-¦       JalaiDateHelper.cs
-¦       Person.cs
-¦       Post.cs
-¦       Role.cs
-¦       RotationQueue.cs
-¦       ScedulerOptions.cs
-¦       ScheduleDay.cs
-¦       ShiftSlot.cs
-¦
-+---Services
+â”‚   PersonListForm.cs
+â”‚   PersonListForm.Designer.cs
+â”‚   PersonRoleForm.cs
+â”‚   PersonRoleForm.Designer.cs
+â”‚   Program.cs
+â”‚   ScheduleForm.cs
+â”‚   ScheduleForm.Designer.cs
+â”‚
+â”œâ”€â”€â”€Data
+â”‚       AssignmentRepository.cs
+â”‚       DatabaseInitializer.cs
+â”‚       IAssignmentRepository.cs
+â”‚       IPersonRepository.cs
+â”‚       IPostRepository.cs
+â”‚       PersonRepository.cs
+â”‚       PostRepository.cs
+â”‚       SQLiteRepositoryBase.cs
+â”‚
+â”œâ”€â”€â”€Models
+â”‚       Assignment.cs
+â”‚       JalaiDateHelper.cs
+â”‚       Person.cs
+â”‚       Post.cs
+â”‚       Role.cs
+â”‚       RotationQueue.cs
+â”‚       ScedulerOptions.cs
+â”‚       ScheduleDay.cs
+â”‚       ShiftSlot.cs
+â”‚
+â””â”€â”€â”€Services
         ExcelHelper.cs
         IExportService.cs
         ISchedulerService.cs

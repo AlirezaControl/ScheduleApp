@@ -10,19 +10,26 @@ namespace GuardScheduler.Services
     {
         private readonly IPersonRepository _personRepo;
         private readonly IPostRepository _postRepo;
+        private readonly IShiftSlotRepository _shiftSlotRepo;
         private readonly IAssignmentRepository _assignmentRepo;
         private readonly SchedulerOptions _options;
 
         private readonly Dictionary<Role, RotationQueue<int>> _roleQueues
             = new Dictionary<Role, RotationQueue<int>>();
 
-        public SchedulerService(IPersonRepository personRepo, IPostRepository postRepo,
-            IAssignmentRepository assignmentRepo, SchedulerOptions options)
+        public SchedulerService(
+            IPersonRepository personRepo,
+            IPostRepository postRepo,
+            IShiftSlotRepository shiftSlotRepo,
+            IAssignmentRepository assignmentRepo,
+            SchedulerOptions options)
         {
             _personRepo = personRepo;
             _postRepo = postRepo;
+            _shiftSlotRepo = shiftSlotRepo;
             _assignmentRepo = assignmentRepo;
             _options = options;
+
             InitQueues();
         }
 
@@ -68,22 +75,24 @@ namespace GuardScheduler.Services
                         DurationHours = post.SlotDurationHours,
                         SlotIndex = idx
                     };
+
+                    // Save slot to DB so it gets a valid Id
+                    slot.Id = _shiftSlotRepo.Insert(slot);
+
                     day.ShiftSlots.Add(slot);
 
-                    // Assign a person to the slot based on availability and role
+                    // Assign a person to the slot
                     var assignedPersonId = AssignPersonToSlot(post);
                     if (assignedPersonId != null)
                     {
-                        // Create an assignment object
                         var assignment = new Assignment
                         {
-                            ShiftSlotId = slot.Id, // Assuming slot has a unique Id
+                            ShiftSlotId = slot.Id,
                             PersonId = assignedPersonId.Value,
                             AssignedAt = DateTime.UtcNow
                         };
 
-                        // Save the assignment to the database
-                        _assignmentRepo.Insert(assignment); // Call the insert method
+                        _assignmentRepo.Insert(assignment);
                     }
                 }
             }
@@ -91,23 +100,29 @@ namespace GuardScheduler.Services
             return day;
         }
 
-        // This method should return the ID of the assigned person or null if no one is available
         private int? AssignPersonToSlot(Post post)
         {
             var availablePersons = _personRepo.GetAll();
-            foreach (Person p in availablePersons)
+
+            // Filter only those who match allowed roles
+            var matchingPersons = availablePersons
+                .Where(p => post.AllowedRoles.Contains(p.PrimaryRole))
+                .ToList();
+
+            if (!matchingPersons.Any())
+                return null;
+
+            // Round-robin by role (instead of always first)
+            var role = matchingPersons.First().PrimaryRole;
+            if (_roleQueues.TryGetValue(role, out var queue) && queue.Count > 0)
             {
-                if (post.AllowedRoles.Contains(p.PrimaryRole))
-                {
-                    return p.Id;
-                }
+                var personId = queue.DequeueAndRotate();
+                queue.Enqueue(personId); // put back for round-robin
+                return personId;
             }
 
-            // Implement any additional logic to select a person from availablePersons
-            // For example, you might want to round-robin assign or choose based on availability
-
-            // Example: Just return the first available person's ID for simplicity
-            return availablePersons.FirstOrDefault()?.Id;
+            // fallback
+            return matchingPersons.First().Id;
         }
     }
 }

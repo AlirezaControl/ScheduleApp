@@ -9,26 +9,63 @@ namespace GuardScheduler.Models
         private readonly LinkedList<T> _items = new LinkedList<T>();
 
         public RotationQueue() { }
+
         public RotationQueue(IEnumerable<T> items)
         {
-            foreach (var it in items) _items.AddLast(it);
+            foreach (var it in items)
+                _items.AddLast(it);
         }
 
-        public T Peek() => _items.First.Value;
+        public int Count => _items.Count;
 
+        public T Peek()
+        {
+            if (_items.Count == 0)
+                throw new InvalidOperationException("Queue is empty");
+            return _items.First.Value;
+        }
+
+        /// <summary>
+        /// Removes the first item and rotates it to the end.
+        /// </summary>
         public T DequeueAndRotate()
         {
-            if (_items.Count == 0) throw new InvalidOperationException("Queue is empty");
+            if (_items.Count == 0)
+                throw new InvalidOperationException("Queue is empty");
+
             var first = _items.First.Value;
             _items.RemoveFirst();
             _items.AddLast(first);
             return first;
         }
 
-        public void Add(T item) => _items.AddLast(item);
+        /// <summary>
+        /// Standard queue-like enqueue.
+        /// </summary>
+        public void Enqueue(T item) => _items.AddLast(item);
 
-        public void RotateOnce() => DequeueAndRotate();
+        /// <summary>
+        /// Alias for Enqueue to match your earlier "Add".
+        /// </summary>
+        public void Add(T item) => Enqueue(item);
 
+        /// <summary>
+        /// Rotates without returning.
+        /// </summary>
+        public void RotateOnce()
+        {
+            if (_items.Count > 0)
+                DequeueAndRotate();
+        }
+
+        /// <summary>
+        /// Snapshot of current queue order.
+        /// </summary>
         public IEnumerable<T> Snapshot() => _items.ToList();
+
+        internal object Dequeue()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

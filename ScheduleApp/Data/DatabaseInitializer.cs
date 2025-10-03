@@ -1,4 +1,5 @@
-﻿using System.Data.SQLite;
+﻿using System;
+using System.Data.SQLite;
 using GuardScheduler.Models;
 
 namespace GuardScheduler.Data
@@ -27,11 +28,11 @@ namespace GuardScheduler.Data
                     AllowedRoles TEXT, -- CSV of role names
                     SlotsPerDay INTEGER NOT NULL DEFAULT 1,
                     SlotDurationHours INTEGER NOT NULL DEFAULT 24,
-                    EnforceRestNextDay INTEGER NOT NULL DEFAULT 1 -- Using 1 for true and 0 for false
+                    EnforceRestNextDay INTEGER NOT NULL DEFAULT 1 -- 1 = true, 0 = false
                 );";
             cmd.ExecuteNonQuery();
 
-            // --- Person ---
+            // --- Persons ---
             cmd.CommandText = @"
                 CREATE TABLE IF NOT EXISTS Person (
                     Id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,6 +44,19 @@ namespace GuardScheduler.Data
                     AllowedPosts TEXT, -- CSV of post names
                     FOREIGN KEY(PrimaryRoleId) REFERENCES Role(Id),
                     FOREIGN KEY(SecondaryRoleId) REFERENCES Role(Id)
+                );";
+            cmd.ExecuteNonQuery();
+
+            // --- ShiftSlots ---
+            cmd.CommandText = @"
+                CREATE TABLE IF NOT EXISTS ShiftSlot (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Date DATE NOT NULL,
+                    PostId INTEGER NOT NULL,
+                    StartHour INTEGER NOT NULL,
+                    DurationHours INTEGER NOT NULL,
+                    SlotIndex INTEGER NOT NULL,
+                    FOREIGN KEY(PostId) REFERENCES Post(Id)
                 );";
             cmd.ExecuteNonQuery();
 

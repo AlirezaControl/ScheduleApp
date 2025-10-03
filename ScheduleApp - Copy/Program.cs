@@ -1,11 +1,9 @@
-﻿using GuardScheduler.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using GuardScheduler;
+using GuardScheduler.Data;
+using GuardScheduler.Models;
 using GuardScheduler.Services;
-using GuardScheduler;
+using System;
+using System.Windows.Forms;
 
 namespace ScheduleApp
 {
@@ -17,20 +15,24 @@ namespace ScheduleApp
         [STAThread]
         static void Main()
         {
+            string connectionString = "Data Source=schedule.db";
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            var repo = new PersonRepository("Data Source=schedule.db");
+            // Initialize repositories
+            var personRepository = new PersonRepository(connectionString);
+            var postRepository = new PostRepository(connectionString);
+            var assignmentRepository = new AssignmentRepository(connectionString);
 
+            // Initialize SchedulerOptions
+            var schedulerOptions = new SchedulerOptions();
 
-            var personListForm = new PersonListForm(repo);
+            // Create the SchedulerService with all required dependencies
+            var schedulerService = new SchedulerService(personRepository, postRepository, assignmentRepository, schedulerOptions);
 
-            var importer = new PersonImporter(repo);
-            importer.ImportFromExcel("C:\\Temp\\persons.xlsx");
-            MessageBox.Show("Names imported successfully!");
-
-         
-            Application.Run(personListForm);
+            // Initialize and run the main form (ScheduleForm)
+            Application.Run(new ScheduleForm(schedulerService,assignmentRepository,personRepository,postRepository));
         }
     }
 }
