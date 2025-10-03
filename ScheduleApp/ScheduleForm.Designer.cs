@@ -14,7 +14,7 @@ namespace GuardScheduler
                 components.Dispose();
             base.Dispose(disposing);
         }
-
+        private Button btnExportWord;
         private void InitializeComponent()
         {
             this.labelFromDate = new System.Windows.Forms.Label();
@@ -40,6 +40,14 @@ namespace GuardScheduler
             this.grpPasbakhsh.SuspendLayout();
             this.grpDezhban.SuspendLayout();
             this.SuspendLayout();
+
+            this.btnExportWord = new System.Windows.Forms.Button();
+            this.btnExportWord.Location = new System.Drawing.Point(520, 100);
+            this.btnExportWord.Size = new System.Drawing.Size(150, 38);
+            this.btnExportWord.Text = "خروجی Word";
+            this.btnExportWord.Click += new System.EventHandler(this.btnExportWord_Click);
+            this.Controls.Add(this.btnExportWord);
+
             // 
             // labelFromDate
             // 

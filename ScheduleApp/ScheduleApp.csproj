@@ -152,6 +152,7 @@
     <Compile Include="Services\ISchedulerService.cs" />
     <Compile Include="Services\PersonImporter.cs" />
     <Compile Include="Services\SchedulerService.cs" />
+    <Compile Include="Services\WordExportService.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

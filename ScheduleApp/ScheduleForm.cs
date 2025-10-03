@@ -5,6 +5,7 @@ using GuardScheduler.Models;
 using GuardScheduler.Services;
 using GuardScheduler.Data;
 using MD.PersianDateTime;
+using GuardScheduler.Services;
 
 namespace GuardScheduler
 {
@@ -43,6 +44,7 @@ namespace GuardScheduler
         {
             dgv.Columns.Clear();
             dgv.Columns.Add("Post", "پست");
+
             for (int hour = 0; hour < 24; hour++)
                 dgv.Columns.Add($"H{hour}", hour.ToString("00") + ":00");
 
@@ -50,6 +52,15 @@ namespace GuardScheduler
             dgv.RowHeadersVisible = false;
             dgv.AllowUserToAddRows = false;
             dgv.ReadOnly = true;
+        }
+
+        private int GetPostDurationHours(Post post)
+        {
+            if (post.Name == "نیروی آماده") return 24;
+            if (post.AllowedRoles.Contains(Role.Negahban)) return 2;
+            if (post.AllowedRoles.Contains(Role.PasBakhsh)) return 4;
+            if (post.AllowedRoles.Contains(Role.Dezhban)) return 8;
+            return 1;
         }
 
         private void btnGenerateSchedule_Click(object sender, EventArgs e)
@@ -77,14 +88,17 @@ namespace GuardScheduler
             }
             _scheduleRepo.SaveScheduleDays(newSchedule);
 
+            var persons = _personRepo.GetAll();
+            var posts = _postRepo.GetAll();
+
             foreach (var day in newSchedule)
             {
                 string jalaliDate = new PersianDateTime(day.Date).ToString("yyyy/MM/dd");
+                var postsGroups = day.ShiftSlots.GroupBy(s => s.PostId);
 
-                var posts = day.ShiftSlots.GroupBy(s => s.PostId);
-                foreach (var postGroup in posts)
+                foreach (var postGroup in postsGroups)
                 {
-                    var post = _postRepo.GetById(postGroup.Key);
+                    var post = posts.FirstOrDefault(p => p.Id == postGroup.Key);
                     if (post == null) continue;
 
                     var rowCells = new object[25];
@@ -93,28 +107,19 @@ namespace GuardScheduler
                     foreach (var slot in postGroup)
                     {
                         var assignment = day.Assignments.FirstOrDefault(a => a.ShiftSlotId == slot.Id);
-                        string personName = "بدون نگهبان";
                         if (assignment != null)
                         {
-                            var person = _personRepo.GetById(assignment.PersonId);
-                            personName = person != null ? $"{person.FirstName} {person.LastName}" : personName;
-                        }
+                            var person = persons.FirstOrDefault(p => p.Id == assignment.PersonId);
+                            string personName = person != null ? $"{person.FirstName} {person.LastName}" : "بدون نگهبان";
 
-                        // Fill all hours based on DurationHours
-                        int startHour = slot.Start.Hours;
-                        int endHour = Math.Min(startHour + slot.DurationHours, 24); // prevent overflow
-                        for (int h = startHour; h < endHour; h++)
-                        {
-                            rowCells[h + 1] = personName;
+                            int duration = GetPostDurationHours(post);
+                            for (int h = slot.Start.Hours; h < Math.Min(slot.Start.Hours + duration, 24); h++)
+                                rowCells[h + 1] = personName;
                         }
                     }
 
-                    if (post.Name == "نیروی آماده" || (!post.AllowedRoles.Contains(Role.Negahban)
-                        && !post.AllowedRoles.Contains(Role.PasBakhsh)
-                        && !post.AllowedRoles.Contains(Role.Dezhban)))
-                    {
+                    if (post.Name == "نیروی آماده")
                         dgv24HourPosts.Rows.Add(rowCells);
-                    }
                     else if (post.AllowedRoles.Contains(Role.Negahban))
                         dgvNegahban.Rows.Add(rowCells);
                     else if (post.AllowedRoles.Contains(Role.PasBakhsh))
@@ -130,6 +135,35 @@ namespace GuardScheduler
             using (var personListForm = new PersonListForm(_personRepo))
             {
                 personListForm.ShowDialog();
+            }
+        }
+
+        private void btnExportWord_Click(object sender, EventArgs e)
+        {
+            DateTime fromDate = dateTimePickerFrom.Value.Value.Date;
+            DateTime toDate = dateTimePickerTo.Value.Value.Date;
+
+            var scheduleDays = _scheduleRepo.GetScheduleDays(fromDate, toDate).ToList();
+            var persons = _personRepo.GetAll().ToList();
+            var posts = _postRepo.GetAll().ToList();
+
+            if (!scheduleDays.Any())
+            {
+                MessageBox.Show("هیچ برنامه‌ای برای خروجی یافت نشد.", "خطا", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using (SaveFileDialog dlg = new SaveFileDialog())
+            {
+                dlg.Filter = "Word Document|*.docx";
+                dlg.FileName = $"Schedule_{fromDate:yyyyMMdd}_{toDate:yyyyMMdd}.docx";
+
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    var wordExporter = new WordExportService();
+                    wordExporter.ExportScheduleToWord(scheduleDays, dlg.FileName, persons, posts);
+                    MessageBox.Show("برنامه با موفقیت صادر شد.", "اطلاع", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
             }
         }
     }

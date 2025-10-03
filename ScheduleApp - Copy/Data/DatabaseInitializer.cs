@@ -1,4 +1,5 @@
-﻿using System.Data.SQLite;
+﻿using System;
+using System.Data.SQLite;
 using GuardScheduler.Models;
 
 namespace GuardScheduler.Data
@@ -27,11 +28,11 @@ namespace GuardScheduler.Data
                     AllowedRoles TEXT, -- CSV of role names
                     SlotsPerDay INTEGER NOT NULL DEFAULT 1,
                     SlotDurationHours INTEGER NOT NULL DEFAULT 24,
-                    EnforceRestNextDay INTEGER NOT NULL DEFAULT 1 -- Using 1 for true and 0 for false
+                    EnforceRestNextDay INTEGER NOT NULL DEFAULT 1 -- 1 = true, 0 = false
                 );";
             cmd.ExecuteNonQuery();
 
-            // --- Person ---
+            // --- Persons ---
             cmd.CommandText = @"
                 CREATE TABLE IF NOT EXISTS Person (
                     Id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -46,6 +47,19 @@ namespace GuardScheduler.Data
                 );";
             cmd.ExecuteNonQuery();
 
+            // --- ShiftSlots ---
+            cmd.CommandText = @"
+                CREATE TABLE IF NOT EXISTS ShiftSlot (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Date DATE NOT NULL,
+                    PostId INTEGER NOT NULL,
+                    StartHour INTEGER NOT NULL,
+                    DurationHours INTEGER NOT NULL,
+                    SlotIndex INTEGER NOT NULL,
+                    FOREIGN KEY(PostId) REFERENCES Post(Id)
+                );";
+            cmd.ExecuteNonQuery();
+
             // --- Assignments ---
             cmd.CommandText = @"
                 CREATE TABLE IF NOT EXISTS Assignment (
@@ -55,6 +69,20 @@ namespace GuardScheduler.Data
                     AssignedAt DATETIME NOT NULL,
                     FOREIGN KEY (ShiftSlotId) REFERENCES ShiftSlot(Id),
                     FOREIGN KEY (PersonId) REFERENCES Person(Id)
+                );";
+            cmd.ExecuteNonQuery();
+
+            // --- Schedules (for ScheduleDay / ShiftSlot assignments) ---
+            cmd.CommandText = @"
+                CREATE TABLE IF NOT EXISTS Schedules (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Date TEXT NOT NULL,
+                    PostId INTEGER NOT NULL,
+                    PersonId INTEGER,
+                    Start TEXT NOT NULL,
+                    DurationHours INTEGER NOT NULL,
+                    FOREIGN KEY(PostId) REFERENCES Post(Id),
+                    FOREIGN KEY(PersonId) REFERENCES Person(Id)
                 );";
             cmd.ExecuteNonQuery();
         }
