@@ -17,6 +17,9 @@ namespace GuardScheduler.Services
         private readonly Dictionary<Role, RotationQueue<int>> _roleQueues = new Dictionary<Role, RotationQueue<int>>();
         private readonly Dictionary<int, RotationQueue<int>> _postRotationQueues = new Dictionary<int, RotationQueue<int>>();
 
+        // Track number of assignments for each person during this week
+        private readonly Dictionary<int, int> _assignmentsThisWeek = new Dictionary<int, int>();
+
         public SchedulerService(
             IPersonRepository personRepo,
             IPostRepository postRepo,
@@ -44,16 +47,36 @@ namespace GuardScheduler.Services
                     .ToList();
                 _roleQueues[role] = new RotationQueue<int>(list);
             }
+
+            // Initialize weekly assignment count
+            foreach (var person in people)
+                _assignmentsThisWeek[person.Id] = 0;
         }
 
         public List<ScheduleDay> GenerateSchedule(DateTime fromDate, DateTime toDate)
         {
             var days = new List<ScheduleDay>();
+
+            // Reset assignment counts at the beginning of each week
+            var weekStart = fromDate.Date;
             for (var d = fromDate.Date; d <= toDate.Date; d = d.AddDays(1))
             {
+                if ((d - weekStart).TotalDays >= 7)
+                {
+                    weekStart = d;
+                    ResetWeeklyAssignments();
+                }
+
                 days.Add(GenerateScheduleForDate(d));
             }
+
             return days;
+        }
+
+        private void ResetWeeklyAssignments()
+        {
+            foreach (var key in _assignmentsThisWeek.Keys.ToList())
+                _assignmentsThisWeek[key] = 0;
         }
 
         public ScheduleDay GenerateScheduleForDate(DateTime date)
@@ -79,7 +102,7 @@ namespace GuardScheduler.Services
                 if (!assignedByPostName.ContainsKey(post.Name))
                     assignedByPostName[post.Name] = new HashSet<int>();
 
-                // --- Negahban Posts ---
+                // --- Negahban ---
                 if (post.AllowedRoles.Contains(Role.Negahban))
                 {
                     SetupPostQueueFromPool(post, Role.Negahban, 3, rolePools);
@@ -99,7 +122,7 @@ namespace GuardScheduler.Services
                         }
                     }
                 }
-                // --- Dezhban Posts ---
+                // --- Dezhban ---
                 else if (post.AllowedRoles.Contains(Role.Dezhban) && post.Name != "نیروی آماده")
                 {
                     SetupPostQueueFromPool(post, Role.Dezhban, 3, rolePools);
@@ -119,7 +142,7 @@ namespace GuardScheduler.Services
                         }
                     }
                 }
-                // --- PasBakhsh Posts ---
+                // --- PasBakhsh ---
                 else if (post.AllowedRoles.Contains(Role.PasBakhsh) && post.Name != "نیروی آماده")
                 {
                     SetupPostQueueFromPool(post, Role.PasBakhsh, 2, rolePools);
@@ -166,14 +189,7 @@ namespace GuardScheduler.Services
                         var assignedPersonId = AssignPersonToSlotAvoidingOtherPosts(post, assignedByPostName);
                         if (assignedPersonId.HasValue)
                         {
-                            var assignment = new Assignment
-                            {
-                                ShiftSlotId = slot.Id,
-                                PersonId = assignedPersonId.Value,
-                                AssignedAt = DateTime.UtcNow
-                            };
-                            day.Assignments.Add(assignment);
-                            _assignmentRepo.Insert(assignment);
+                            AddShift(day, post.Id, startHour, post.SlotDurationHours, assignedPersonId.Value);
                             assignedByPostName[post.Name].Add(assignedPersonId.Value);
                         }
                     }
@@ -192,8 +208,17 @@ namespace GuardScheduler.Services
                 var person = _personRepo.GetById(personId);
                 if (person == null || !person.Available) continue;
 
+                // Skip married if they already have one post this week
+                if (person.Married && _assignmentsThisWeek.ContainsKey(person.Id) && _assignmentsThisWeek[person.Id] >= 1)
+                    continue;
+
                 if (!assignedByPostName.Any(kvp => kvp.Key != postName && kvp.Value.Contains(personId)))
+                {
+                    if (!_assignmentsThisWeek.ContainsKey(personId))
+                        _assignmentsThisWeek[personId] = 0;
+                    _assignmentsThisWeek[personId] += 1;
                     return personId;
+                }
             }
             return null;
         }
@@ -209,8 +234,16 @@ namespace GuardScheduler.Services
                     var person = _personRepo.GetById(personId);
                     if (person == null || !person.Available) continue;
 
+                    if (person.Married && _assignmentsThisWeek.ContainsKey(person.Id) && _assignmentsThisWeek[person.Id] >= 1)
+                        continue;
+
                     if (!assignedByPostName.Any(kvp => kvp.Value.Contains(personId)))
+                    {
+                        if (!_assignmentsThisWeek.ContainsKey(personId))
+                            _assignmentsThisWeek[personId] = 0;
+                        _assignmentsThisWeek[personId] += 1;
                         return personId;
+                    }
                 }
             }
             return null;
@@ -228,10 +261,21 @@ namespace GuardScheduler.Services
             if (post.Name != "ضلع غربی")
                 availablePersons = availablePersons.Where(p => p.PrimaryRole != Role.MoafAzRazm).ToList();
 
+            // Skip married if already has a post this week
+            availablePersons = availablePersons
+                .Where(p => !p.Married || !_assignmentsThisWeek.ContainsKey(p.Id) || _assignmentsThisWeek[p.Id] < 1)
+                .ToList();
+
             if (!availablePersons.Any()) return null;
 
             var role = availablePersons.First().PrimaryRole;
-            return AssignFromQueueAvoidingOtherPosts(role, assignedByPostName) ?? availablePersons.First().Id;
+            var selectedId = AssignFromQueueAvoidingOtherPosts(role, assignedByPostName) ?? availablePersons.First().Id;
+
+            if (!_assignmentsThisWeek.ContainsKey(selectedId))
+                _assignmentsThisWeek[selectedId] = 0;
+            _assignmentsThisWeek[selectedId] += 1;
+
+            return selectedId;
         }
 
         private void SetupPostQueueFromPool(Post post, Role role, int count, Dictionary<Role, List<int>> rolePools)

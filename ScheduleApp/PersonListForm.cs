@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Windows.Forms;
 using GuardScheduler.Models;
 using GuardScheduler.Data;
@@ -19,27 +20,62 @@ namespace GuardScheduler
 
         private void LoadPersons()
         {
-            listBoxPersons.Items.Clear();
+            dataGridViewPersons.Rows.Clear();
             List<Person> persons = _personRepository.GetAll();
+
             foreach (var person in persons)
             {
-                listBoxPersons.Items.Add(person);
+                string primaryRole = TranslateRole(person.PrimaryRole.ToString());
+                string secondaryRole = person.SecondaryRole.HasValue
+                    ? TranslateRole(person.SecondaryRole.Value.ToString())
+                    : "-";
+
+                string marriedText = person.Married ? "متأهل" : "مجرد";
+                string availableText = person.Available ? "در دسترس" : "غیرفعال";
+
+                dataGridViewPersons.Rows.Add(
+                    $"{person.FirstName} {person.LastName}",
+                    primaryRole,
+                    secondaryRole,
+                    marriedText,
+                    availableText,
+                    person.RotationOrder
+                );
             }
         }
 
-        private void listBoxPersons_DoubleClick(object sender, EventArgs e)
+        private string TranslateRole(string roleName)
         {
-            if (listBoxPersons.SelectedItem is Person selectedPerson)
+            // Converts enum identifiers to readable Persian
+            return roleName switch
             {
-                var form = new PersonRoleForm(_personRepository, selectedPerson);
-                form.ShowDialog();
-                LoadPersons(); // Refresh the list after closing the form
-            }
+                "PasBakhsh" => "پاس‌بخش",
+                "Dezhban" => "دژبان",
+                "GoruhB" => "گروه ب",
+                "Ranandeh" => "راننده",
+                "KomakAshpaz" => "کمک‌آشپز",
+                "Negahban" => "نگهبان",
+                "AfsarGharargah" => "افسر قرارگاه",
+                "MohandesProject" => "مهندس پروژه",
+                "MoafAzRazm" => "معاف از رزم",
+                _ => roleName
+            };
         }
 
         private void btnRefresh_Click(object sender, EventArgs e)
         {
-            LoadPersons(); // Refresh the list when the button is clicked
+            LoadPersons();
+        }
+
+        private void dataGridViewPersons_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.RowIndex < _personRepository.GetAll().Count)
+            {
+                var person = _personRepository.GetAll()[e.RowIndex];
+                var form = new PersonRoleForm(_personRepository, person);
+                form.ShowDialog();
+                LoadPersons();
+            }
         }
     }
 }

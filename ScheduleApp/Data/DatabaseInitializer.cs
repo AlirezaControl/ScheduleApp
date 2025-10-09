@@ -38,11 +38,12 @@ namespace GuardScheduler.Data
                     Id INTEGER PRIMARY KEY AUTOINCREMENT,
                     FirstName TEXT NOT NULL,
                     LastName TEXT NOT NULL,
+                    Married INTEGER NOT NULL DEFAULT 0, -- new column for marriage status
                     PrimaryRoleId INTEGER NOT NULL,
                     SecondaryRoleId INTEGER,
                     RotationOrder INTEGER NOT NULL DEFAULT 0,
                     AllowedPosts TEXT, -- CSV of post names
-                    Available INTEGER NOT NULL DEFAULT 1, -- new column
+                    Available INTEGER NOT NULL DEFAULT 1, -- 1 = true, 0 = false
                     FOREIGN KEY(PrimaryRoleId) REFERENCES Role(Id),
                     FOREIGN KEY(SecondaryRoleId) REFERENCES Role(Id)
                 );";
@@ -73,7 +74,7 @@ namespace GuardScheduler.Data
                 );";
             cmd.ExecuteNonQuery();
 
-            // --- Schedules (for ScheduleDay / ShiftSlot assignments) ---
+            // --- Schedules ---
             cmd.CommandText = @"
                 CREATE TABLE IF NOT EXISTS Schedules (
                     Id INTEGER PRIMARY KEY AUTOINCREMENT,

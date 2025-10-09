@@ -6,11 +6,12 @@ public class Person
     public int Id { get; set; }
     public string FirstName { get; set; }
     public string LastName { get; set; }
+    public bool Married { get; set; }
     public Role PrimaryRole { get; set; }
     public Role? SecondaryRole { get; set; }
     public int RotationOrder { get; set; }
     public List<string> AllowedPostNames { get; set; } = new List<string>();
-
+    
     // New property
     public bool Available { get; set; } = true;
 
