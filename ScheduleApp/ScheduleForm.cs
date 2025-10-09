@@ -5,7 +5,6 @@ using GuardScheduler.Models;
 using GuardScheduler.Services;
 using GuardScheduler.Data;
 using MD.PersianDateTime;
-using GuardScheduler.Services;
 
 namespace GuardScheduler
 {
@@ -16,7 +15,8 @@ namespace GuardScheduler
         private readonly IPersonRepository _personRepo;
         private readonly IPostRepository _postRepo;
         private readonly IScheduleDayRepository _scheduleRepo;
-        private string TemplatePath = "لوحه نگهبانی.docx";
+        private string TemplatePath = "Template.docx";
+
         public ScheduleForm(
             ISchedulerService schedulerService,
             IAssignmentRepository assignmentRepo,
@@ -30,16 +30,11 @@ namespace GuardScheduler
             _personRepo = personRepo;
             _postRepo = postRepo;
             _scheduleRepo = scheduleRepo;
-            var persons = (from p in personRepo.GetAll()
-                          where p.PrimaryRole == Role.MoafAzRazm
-                           select p).ToList();
+
             _personRepo.PersonChanged += (s, e) =>
             {
                 // Only regenerate schedule if the person became available/unavailable
-                if (dateTimePickerFrom.Value != null && dateTimePickerTo.Value != null)
-                {
-                    btnGenerateSchedule_Click(null, null); // regenerate automatically
-                }
+                btnGenerateSchedule_Click(null, null);
             };
 
             dateTimePickerFrom.Value = DateTime.Now;
@@ -92,11 +87,13 @@ namespace GuardScheduler
 
             _scheduleRepo.DeleteAll();
             var newSchedule = _schedulerService.GenerateSchedule(fromDate, toDate);
+
             if (!newSchedule.Any(d => d.ShiftSlots.Any()))
             {
                 MessageBox.Show("هیچ برنامه‌ای تولید نشد.", "خطا", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+
             _scheduleRepo.SaveScheduleDays(newSchedule);
 
             var persons = _personRepo.GetAll();
@@ -143,10 +140,8 @@ namespace GuardScheduler
 
         private void btnOpenPersonList_Click(object sender, EventArgs e)
         {
-            using (var personListForm = new PersonListForm(_personRepo))
-            {
-                personListForm.ShowDialog();
-            }
+            using var personListForm = new PersonListForm(_personRepo);
+            personListForm.ShowDialog();
         }
 
         private void btnExportWord_Click(object sender, EventArgs e)
@@ -164,20 +159,25 @@ namespace GuardScheduler
                 return;
             }
 
-            using (SaveFileDialog dlg = new SaveFileDialog())
+            using var dlg = new SaveFileDialog
             {
-                dlg.Filter = "Word Document|*.docx";
-                dlg.FileName = $"Schedule_{fromDate:yyyyMMdd}_{toDate:yyyyMMdd}.docx";
+                Filter = "Word Document|*.docx",
+                FileName = $"Schedule_{fromDate:yyyyMMdd}_{toDate:yyyyMMdd}.docx"
+            };
 
-                if (dlg.ShowDialog() == DialogResult.OK)
-                {
-                    var exporter = new WordTemplateExporter(); // get ScheduleDay
+            if (dlg.ShowDialog() != DialogResult.OK) return;
 
-                    exporter.FillTemplate("Template.docx", "ScheduleOutput.docx", scheduleDays.FirstOrDefault(),posts,persons);
+            try
+            {
+                var exporter = new WordTemplateExporter();
+                exporter.Export(TemplatePath, dlg.FileName, scheduleDays.First(), posts, persons);
 
-                }
+                MessageBox.Show("فایل با موفقیت ایجاد شد.", "موفقیت", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("خطا در ایجاد فایل: " + ex.Message, "خطا", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
     }
 }

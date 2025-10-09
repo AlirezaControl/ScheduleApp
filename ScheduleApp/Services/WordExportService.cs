@@ -1,127 +1,83 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using GuardScheduler.Models;
-using MD.PersianDateTime;
 
 namespace GuardScheduler.Services
 {
     public class WordTemplateExporter
     {
         /// <summary>
-        /// Fills a Word template with ScheduleDay data and saves it to outputPath.
+        /// Export a schedule day to a Word document by replacing placeholders.
         /// </summary>
-        public void FillTemplate(
-            string templatePath,
-            string outputPath,
-            ScheduleDay day,
-            List<Post> posts,
-            List<Person> persons)
+        public void Export(string templatePath, string outputPath,
+                           ScheduleDay scheduleDay, List<Post> posts, List<Person> persons)
         {
-            if (!System.IO.File.Exists(templatePath))
-                throw new ArgumentException("Template file does not exist.", nameof(templatePath));
+            // Copy template to output file
+            File.Copy(templatePath, outputPath, true);
 
-            // Build key-value dictionary
-            var keyValues = BuildKeyValues(day, posts, persons);
+            
 
-            // Copy template
-            System.IO.File.Copy(templatePath, outputPath, true);
-
-            using (WordprocessingDocument doc = WordprocessingDocument.Open(outputPath, true))
+            var replacements = ScheduleMapper.MapAssignmentsToTemplate(scheduleDay, posts, persons);
+            using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(outputPath, true))
             {
-                var body = doc.MainDocumentPart.Document.Body;
+                // Replace placeholders in main body
+                ReplacePlaceholdersInBody(wordDoc.MainDocumentPart.Document.Body, replacements);
 
-                // Replace placeholders
-                foreach (var text in body.Descendants<Text>())
+                // Replace placeholders in headers
+                foreach (var headerPart in wordDoc.MainDocumentPart.HeaderParts)
+                    ReplacePlaceholdersInBody(headerPart.Header, replacements);
+
+                // Replace placeholders in footers
+                foreach (var footerPart in wordDoc.MainDocumentPart.FooterParts)
+                    ReplacePlaceholdersInBody(footerPart.Footer, replacements);
+
+                wordDoc.MainDocumentPart.Document.Save();
+            }
+        }
+
+        private void ReplacePlaceholdersInBody(OpenXmlCompositeElement body, Dictionary<string, string> replacements)
+        {
+            foreach (var paragraph in body.Descendants<Paragraph>())
+            {
+                ReplacePlaceholdersInParagraph(paragraph, replacements);
+            }
+        }
+
+        private void ReplacePlaceholdersInParagraph(Paragraph paragraph, Dictionary<string, string> replacements)
+        {
+            var runs = paragraph.Elements<Run>().ToList();
+            if (!runs.Any()) return;
+
+            // Merge all text in paragraph
+            string paragraphText = string.Concat(runs.Select(r => r.GetFirstChild<Text>()?.Text));
+
+            bool replaced = false;
+
+            foreach (var kv in replacements)
+            {
+                string placeholder = $"{{{{{kv.Key}}}}}"; // e.g., {{Date}}
+                if (paragraphText.Contains(placeholder))
                 {
-                    foreach (var kvp in keyValues)
-                    {
-                        if (text.Text.Contains(kvp.Key))
-                            text.Text = text.Text.Replace(kvp.Key, kvp.Value);
-                    }
+                    paragraphText = paragraphText.Replace(placeholder, kv.Value);
+                    replaced = true;
                 }
-
-                doc.MainDocumentPart.Document.Save();
             }
-        }
 
-        private Dictionary<string, string> BuildKeyValues(ScheduleDay day, List<Post> posts, List<Person> persons)
-        {
-            var dict = new Dictionary<string, string>();
-
-            // Dates
-            dict["{{Date}}"] = new PersianDateTime(day.Date).ToString("yyyy/MM/dd");
-            dict["{{DateNow}}"] = new PersianDateTime(DateTime.Now).ToString("yyyy/MM/dd");
-
-            // پاسبخش {{p1}}..{{p5}}
-            FillSlots(day, posts, persons, "پاس‌بخش", 5, "p", dict);
-
-            // دژبان {{d1}}..{{d12}}
-            FillSlots(day, posts, persons, "دژبان", 12, "d", dict);
-
-            // نگهبانی {{nd1}}..{{nd12}}, {{sh1}}..{{sh12}}, {{gh1}}..{{gh8}}
-            var nightSlots = day.ShiftSlots
-                .Where(s => posts.FirstOrDefault(p => p.Id == s.PostId)?.Name.Contains("نگهبانی") ?? false)
-                .OrderBy(s => s.Start)
-                .ToList();
-
-            for (int i = 0; i < nightSlots.Count; i++)
+            if (replaced)
             {
-                var slot = nightSlots[i];
-                var assignment = day.Assignments.FirstOrDefault(a => a.ShiftSlotId == slot.Id);
-                var name = assignment != null
-                    ? persons.FirstOrDefault(p => p.Id == assignment.PersonId)?.FullName() ?? ""
-                    : "";
+                // Remove old runs
+                paragraph.RemoveAllChildren<Run>();
 
-                dict[$"{{nd{i + 1}}}"] = name;
-                dict[$"{{sh{i + 1}}}"] = name;
-                if (i < 8) dict[$"{{gh{i + 1}}}"] = name;
-            }
-
-            // Other placeholders
-            dict["{{na}}"] = GetAssignedPerson(day, posts, persons, "نیروی آماده");
-            dict["{{R}}"] = GetAssignedPerson(day, posts, persons, "راننده آماده");
-            dict["{{mn}}"] = GetAssignedPerson(day, posts, persons, "مسئول نظافت");
-            dict["{{agh}}"] = GetAssignedPerson(day, posts, persons, "افسر قرارگاه");
-            dict["{{a1}}"] = GetAssignedPerson(day, posts, persons, "آشپزخانه1");
-            dict["{{a2}}"] = GetAssignedPerson(day, posts, persons, "آشپزخانه2");
-
-            return dict;
-        }
-
-        private void FillSlots(ScheduleDay day, List<Post> posts, List<Person> persons,
-            string postName, int maxCount, string keyPrefix, Dictionary<string, string> dict)
-        {
-            var slots = day.ShiftSlots
-                .Where(s => posts.FirstOrDefault(p => p.Id == s.PostId)?.Name.Contains(postName) ?? false)
-                .OrderBy(s => s.Start)
-                .ToList();
-
-            for (int i = 0; i < maxCount; i++)
-            {
-                var slot = slots.ElementAtOrDefault(i);
-                var assignment = slot != null ? day.Assignments.FirstOrDefault(a => a.ShiftSlotId == slot.Id) : null;
-                dict[$"{{{keyPrefix}{i + 1}}}"] = assignment != null
-                    ? persons.FirstOrDefault(p => p.Id == assignment.PersonId)?.FullName() ?? ""
-                    : "";
+                // Add one new run with replaced text
+                Run newRun = new Run();
+                newRun.AppendChild(new Text(paragraphText) { Space = SpaceProcessingModeValues.Preserve });
+                paragraph.AppendChild(newRun);
             }
         }
-
-        private string GetAssignedPerson(ScheduleDay day, List<Post> posts, List<Person> persons, string postName)
-        {
-            var slot = day.ShiftSlots
-                .FirstOrDefault(s => posts.FirstOrDefault(p => p.Id == s.PostId)?.Name.Contains(postName) ?? false);
-
-            var assignment = slot != null ? day.Assignments.FirstOrDefault(a => a.ShiftSlotId == slot.Id) : null;
-
-            return assignment != null ? persons.FirstOrDefault(p => p.Id == assignment.PersonId)?.FullName() ?? "" : "";
-        }
-    }
-
-    public static class PersonExtensions
-    {
-        public static string FullName(this Person p) => p != null ? $"{p.FirstName} {p.LastName}" : "";
     }
 }

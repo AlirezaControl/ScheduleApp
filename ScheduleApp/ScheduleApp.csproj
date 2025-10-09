@@ -58,8 +58,36 @@
     <Reference Include="Microsoft.Bcl.HashCode, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.HashCode.1.1.1\lib\net461\Microsoft.Bcl.HashCode.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Office.Interop.Word, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Office.Interop.Word.15.0.4797.1004\lib\net20\Microsoft.Office.Interop.Word.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="PersianDateTimeControl, Version=1400.5.11.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\PersianDateTimeControl.2.0.1\lib\net20\PersianDateTimeControl.dll</HintPath>
+    </Reference>
+    <Reference Include="RasterEdge.Imaging, Version=12.3.8.30929, Culture=neutral, PublicKeyToken=b638ab5dea8d8105, processorArchitecture=MSIL">
+      <HintPath>..\packages\RasterEdge.Core.12.3.8\lib\netstandard2.0\RasterEdge.Imaging.dll</HintPath>
+    </Reference>
+    <Reference Include="RasterEdge.XDoc.Office.Inner.Common, Version=12.3.8.30929, Culture=neutral, PublicKeyToken=b638ab5dea8d8105, processorArchitecture=MSIL">
+      <HintPath>..\packages\RasterEdge.Core.Office.12.3.8\lib\netstandard2.0\RasterEdge.XDoc.Office.Inner.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="RasterEdge.XDoc.Office.Inner.Office03, Version=12.3.8.30929, Culture=neutral, PublicKeyToken=b638ab5dea8d8105, processorArchitecture=MSIL">
+      <HintPath>..\packages\RasterEdge.Core.Office.12.3.8\lib\netstandard2.0\RasterEdge.XDoc.Office.Inner.Office03.dll</HintPath>
+    </Reference>
+    <Reference Include="RasterEdge.XDoc.PDF, Version=12.3.8.30929, Culture=neutral, PublicKeyToken=b638ab5dea8d8105, processorArchitecture=MSIL">
+      <HintPath>..\packages\XDoc.PDF.12.3.8\lib\netstandard2.0\RasterEdge.XDoc.PDF.dll</HintPath>
+    </Reference>
+    <Reference Include="RasterEdge.XImage.BarcodeCreator, Version=12.3.8.30929, Culture=neutral, PublicKeyToken=b638ab5dea8d8105, processorArchitecture=MSIL">
+      <HintPath>..\packages\XImage.BarcodeGenerator.12.3.8\lib\netstandard2.0\RasterEdge.XImage.BarcodeCreator.dll</HintPath>
+    </Reference>
+    <Reference Include="RasterEdge.XImage.BarcodeScanner, Version=12.3.8.30929, Culture=neutral, PublicKeyToken=b638ab5dea8d8105, processorArchitecture=MSIL">
+      <HintPath>..\packages\XImage.BarcodeReader.12.3.8\lib\netstandard2.0\RasterEdge.XImage.BarcodeScanner.dll</HintPath>
+    </Reference>
+    <Reference Include="RasterEdge.XImage.Raster, Version=12.3.8.30929, Culture=neutral, PublicKeyToken=b638ab5dea8d8105, processorArchitecture=MSIL">
+      <HintPath>..\packages\XImage.Raster.12.3.8\lib\netstandard2.0\RasterEdge.XImage.Raster.dll</HintPath>
     </Reference>
     <Reference Include="RBush, Version=4.0.0.0, Culture=neutral, PublicKeyToken=c77e27b81f4d0187, processorArchitecture=MSIL">
       <HintPath>..\packages\RBush.Signed.4.0.0\lib\net47\RBush.dll</HintPath>
@@ -67,8 +95,26 @@
     <Reference Include="SixLabors.Fonts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=d998eea7b14cab13, processorArchitecture=MSIL">
       <HintPath>..\packages\SixLabors.Fonts.1.0.0\lib\netstandard2.0\SixLabors.Fonts.dll</HintPath>
     </Reference>
+    <Reference Include="Spire.Doc, Version=13.9.10.0, Culture=neutral, PublicKeyToken=663f351905198cb3, processorArchitecture=MSIL">
+      <HintPath>..\packages\Spire.Doc.13.9.10\lib\net40\Spire.Doc.dll</HintPath>
+    </Reference>
     <Reference Include="SQLitePCLRaw.core, Version=2.1.10.2445, Culture=neutral, PublicKeyToken=1488e028ca7ab535, processorArchitecture=MSIL">
       <HintPath>..\packages\SQLitePCLRaw.core.2.1.10\lib\netstandard2.0\SQLitePCLRaw.core.dll</HintPath>
+    </Reference>
+    <Reference Include="Syncfusion.Compression.Portable, Version=31.1.23.0, Culture=neutral, PublicKeyToken=3d67ed1f87d44c89, processorArchitecture=MSIL">
+      <HintPath>..\packages\Syncfusion.Compression.Net.Core.31.1.23\lib\netstandard2.0\Syncfusion.Compression.Portable.dll</HintPath>
+    </Reference>
+    <Reference Include="Syncfusion.DocIO.Portable, Version=31.1.23.0, Culture=neutral, PublicKeyToken=3d67ed1f87d44c89, processorArchitecture=MSIL">
+      <HintPath>..\packages\Syncfusion.DocIO.Net.Core.31.1.23\lib\netstandard2.0\Syncfusion.DocIO.Portable.dll</HintPath>
+    </Reference>
+    <Reference Include="Syncfusion.Licensing, Version=31.1462.23.0, Culture=neutral, PublicKeyToken=632609b4d040f6b4, processorArchitecture=MSIL">
+      <HintPath>..\packages\Syncfusion.Licensing.31.1.23\lib\net462\Syncfusion.Licensing.dll</HintPath>
+    </Reference>
+    <Reference Include="Syncfusion.Markdown, Version=31.1462.23.0, Culture=neutral, PublicKeyToken=3d67ed1f87d44c89, processorArchitecture=MSIL">
+      <HintPath>..\packages\Syncfusion.Markdown.31.1.23\lib\net462\Syncfusion.Markdown.dll</HintPath>
+    </Reference>
+    <Reference Include="Syncfusion.OfficeChart.Portable, Version=31.1.23.0, Culture=neutral, PublicKeyToken=3d67ed1f87d44c89, processorArchitecture=MSIL">
+      <HintPath>..\packages\Syncfusion.OfficeChart.Net.Core.31.1.23\lib\netstandard2.0\Syncfusion.OfficeChart.Portable.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -78,6 +124,17 @@
     <Reference Include="System.Data.SQLite, Version=1.0.119.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
       <HintPath>..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.119.0\lib\net46\System.Data.SQLite.dll</HintPath>
     </Reference>
+    <Reference Include="System.Drawing.Common, Version=4.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Drawing.Common.4.5.0\lib\net461\System.Drawing.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO.FileSystem.Primitives, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IO.FileSystem.Primitives.4.3.0\lib\net46\System.IO.FileSystem.Primitives.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.IO.Packaging, Version=4.0.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IO.Packaging.4.5.0\lib\net46\System.IO.Packaging.dll</HintPath>
+    </Reference>
     <Reference Include="System.Memory, Version=4.0.1.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
     </Reference>
@@ -86,7 +143,10 @@
       <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.7.0\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.7.1\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Text.Encoding.CodePages, Version=4.1.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Encoding.CodePages.4.7.1\lib\net461\System.Text.Encoding.CodePages.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -97,7 +157,19 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="WaterTrans.GlyphLoader, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\WaterTrans.GlyphLoader.1.0.0\lib\netstandard2.0\WaterTrans.GlyphLoader.dll</HintPath>
+    </Reference>
     <Reference Include="WindowsBase" />
+    <Reference Include="Xceed.Document.NET, Version=5.1.25458.6676, Culture=neutral, PublicKeyToken=ba83ff368b7563c6, processorArchitecture=MSIL">
+      <HintPath>..\packages\Xceed.Document.NET.5.1.25458.6676\lib\net40\Xceed.Document.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Drawing.NET, Version=1.0.25458.6676, Culture=neutral, PublicKeyToken=ba83ff368b7563c6, processorArchitecture=MSIL">
+      <HintPath>..\packages\Xceed.Drawing.NET.1.0.25458.6676\lib\net40\Xceed.Drawing.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Pdf, Version=5.1.25458.6676, Culture=neutral, PublicKeyToken=ba83ff368b7563c6, processorArchitecture=MSIL">
+      <HintPath>..\packages\Xceed.Pdf.5.1.25458.6676\lib\net40\Xceed.Pdf.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\AssignmentRepository.cs" />
@@ -153,6 +225,7 @@
     <Compile Include="Services\ISchedulerService.cs" />
     <Compile Include="Services\PersonImporter.cs" />
     <Compile Include="Services\PostScheduler.cs" />
+    <Compile Include="Services\ScheduleMapper.cs" />
     <Compile Include="Services\SchedulerService.cs" />
     <Compile Include="Services\WordExportService.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -188,5 +261,9 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.119.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.119.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets'))" />
+    <Error Condition="!Exists('..\packages\RasterEdge.Core.12.3.8\build\RasterEdge.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\RasterEdge.Core.12.3.8\build\RasterEdge.Core.targets'))" />
+    <Error Condition="!Exists('..\packages\NETStandard.Library.2.0.0\build\netstandard2.0\NETStandard.Library.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NETStandard.Library.2.0.0\build\netstandard2.0\NETStandard.Library.targets'))" />
   </Target>
+  <Import Project="..\packages\RasterEdge.Core.12.3.8\build\RasterEdge.Core.targets" Condition="Exists('..\packages\RasterEdge.Core.12.3.8\build\RasterEdge.Core.targets')" />
+  <Import Project="..\packages\NETStandard.Library.2.0.0\build\netstandard2.0\NETStandard.Library.targets" Condition="Exists('..\packages\NETStandard.Library.2.0.0\build\netstandard2.0\NETStandard.Library.targets')" />
 </Project>
