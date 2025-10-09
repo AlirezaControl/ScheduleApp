@@ -147,10 +147,12 @@
     <Compile Include="ScheduleForm.Designer.cs">
       <DependentUpon>ScheduleForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Services\AssignmentTracker.cs" />
     <Compile Include="Services\ExcelHelper.cs" />
     <Compile Include="Services\IExportService.cs" />
     <Compile Include="Services\ISchedulerService.cs" />
     <Compile Include="Services\PersonImporter.cs" />
+    <Compile Include="Services\PostScheduler.cs" />
     <Compile Include="Services\SchedulerService.cs" />
     <Compile Include="Services\WordExportService.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">

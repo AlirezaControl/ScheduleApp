@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace GuardScheduler.Models
 {
-    public class RotationQueue<T>
+    public class RotationQueue<T> : IEnumerable<T>
     {
         private readonly LinkedList<T> _items = new LinkedList<T>();
 
@@ -25,9 +26,6 @@ namespace GuardScheduler.Models
             return _items.First.Value;
         }
 
-        /// <summary>
-        /// Removes the first item and rotates it to the end.
-        /// </summary>
         public T DequeueAndRotate()
         {
             if (_items.Count == 0)
@@ -39,57 +37,27 @@ namespace GuardScheduler.Models
             return first;
         }
 
-        /// <summary>
-        /// Standard queue-like enqueue.
-        /// </summary>
         public void Enqueue(T item) => _items.AddLast(item);
-
-        /// <summary>
-        /// Alias for Enqueue to match your earlier "Add".
-        /// </summary>
         public void Add(T item) => Enqueue(item);
-
-        /// <summary>
-        /// Rotates without returning.
-        /// </summary>
-        public void RotateOnce()
-        {
-            if (_items.Count > 0)
-                DequeueAndRotate();
-        }
-
-        /// <summary>
-        /// Rotates until the given item is at the front of the queue.
-        /// </summary>
+        public void RotateOnce() { if (_items.Count > 0) DequeueAndRotate(); }
         public bool RotateTo(T target)
         {
-            if (_items.Count == 0)
-                return false;
-
+            if (_items.Count == 0) return false;
             int maxRotations = _items.Count;
             for (int i = 0; i < maxRotations; i++)
             {
                 if (EqualityComparer<T>.Default.Equals(_items.First.Value, target))
                     return true;
-
                 DequeueAndRotate();
             }
-            return false; // target not found
+            return false;
         }
 
-        /// <summary>
-        /// Snapshot of current queue order.
-        /// </summary>
         public IEnumerable<T> Snapshot() => _items.ToList();
-
-        /// <summary>
-        /// Convert queue to List<T>.
-        /// </summary>
         public List<T> ToList() => _items.ToList();
 
-        internal object Dequeue()
-        {
-            throw new NotImplementedException();
-        }
+        // --- Add this to enable foreach ---
+        public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => _items.GetEnumerator();
     }
 }

@@ -1,3 +1,5 @@
+│   Form1.cs
+│   Form1.Designer.cs
 │   PersonListForm.cs
 │   PersonListForm.Designer.cs
 │   PersonRoleForm.cs
@@ -37,3 +39,4 @@
         ISchedulerService.cs
         PersonImporter.cs
         SchedulerService.cs
+        WordExportService.cs

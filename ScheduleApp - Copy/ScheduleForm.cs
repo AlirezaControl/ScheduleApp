@@ -5,6 +5,7 @@ using GuardScheduler.Models;
 using GuardScheduler.Services;
 using GuardScheduler.Data;
 using MD.PersianDateTime;
+using GuardScheduler.Services;
 
 namespace GuardScheduler
 {
@@ -29,6 +30,17 @@ namespace GuardScheduler
             _personRepo = personRepo;
             _postRepo = postRepo;
             _scheduleRepo = scheduleRepo;
+            var persons = (from p in personRepo.GetAll()
+                          where p.PrimaryRole == Role.MoafAzRazm
+                           select p).ToList();
+            _personRepo.PersonChanged += (s, e) =>
+            {
+                // Only regenerate schedule if the person became available/unavailable
+                if (dateTimePickerFrom.Value != null && dateTimePickerTo.Value != null)
+                {
+                    btnGenerateSchedule_Click(null, null); // regenerate automatically
+                }
+            };
 
             dateTimePickerFrom.Value = DateTime.Now;
             dateTimePickerTo.Value = DateTime.Now;
@@ -87,14 +99,17 @@ namespace GuardScheduler
             }
             _scheduleRepo.SaveScheduleDays(newSchedule);
 
+            var persons = _personRepo.GetAll();
+            var posts = _postRepo.GetAll();
+
             foreach (var day in newSchedule)
             {
                 string jalaliDate = new PersianDateTime(day.Date).ToString("yyyy/MM/dd");
-                var posts = day.ShiftSlots.GroupBy(s => s.PostId);
+                var postsGroups = day.ShiftSlots.GroupBy(s => s.PostId);
 
-                foreach (var postGroup in posts)
+                foreach (var postGroup in postsGroups)
                 {
-                    var post = _postRepo.GetById(postGroup.Key);
+                    var post = posts.FirstOrDefault(p => p.Id == postGroup.Key);
                     if (post == null) continue;
 
                     var rowCells = new object[25];
@@ -105,7 +120,7 @@ namespace GuardScheduler
                         var assignment = day.Assignments.FirstOrDefault(a => a.ShiftSlotId == slot.Id);
                         if (assignment != null)
                         {
-                            var person = _personRepo.GetById(assignment.PersonId);
+                            var person = persons.FirstOrDefault(p => p.Id == assignment.PersonId);
                             string personName = person != null ? $"{person.FirstName} {person.LastName}" : "بدون نگهبان";
 
                             int duration = GetPostDurationHours(post);
@@ -133,5 +148,35 @@ namespace GuardScheduler
                 personListForm.ShowDialog();
             }
         }
+
+        private void btnExportWord_Click(object sender, EventArgs e)
+        {
+            DateTime fromDate = dateTimePickerFrom.Value.Value.Date;
+            DateTime toDate = dateTimePickerTo.Value.Value.Date;
+
+            var scheduleDays = _scheduleRepo.GetScheduleDays(fromDate, toDate).ToList();
+            var persons = _personRepo.GetAll().ToList();
+            var posts = _postRepo.GetAll().ToList();
+
+            if (!scheduleDays.Any())
+            {
+                MessageBox.Show("هیچ برنامه‌ای برای خروجی یافت نشد.", "خطا", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using (SaveFileDialog dlg = new SaveFileDialog())
+            {
+                dlg.Filter = "Word Document|*.docx";
+                dlg.FileName = $"Schedule_{fromDate:yyyyMMdd}_{toDate:yyyyMMdd}.docx";
+
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    var wordExporter = new WordExportService();
+                    wordExporter.ExportScheduleToWord(scheduleDays, dlg.FileName, persons, posts);
+                    MessageBox.Show("برنامه با موفقیت صادر شد.", "اطلاع", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+        }
+
     }
 }
