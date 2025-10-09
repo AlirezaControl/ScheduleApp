@@ -11,5 +11,6 @@ namespace GuardScheduler.Models
         public int DurationHours { get; set; }
         public int SlotIndex { get; set; }
         public TimeSpan Duration => TimeSpan.FromHours(DurationHours);
+        public Post Post { get; set; }
     }
 }

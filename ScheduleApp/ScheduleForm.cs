@@ -16,7 +16,7 @@ namespace GuardScheduler
         private readonly IPersonRepository _personRepo;
         private readonly IPostRepository _postRepo;
         private readonly IScheduleDayRepository _scheduleRepo;
-
+        private string TemplatePath = "لوحه نگهبانی.docx";
         public ScheduleForm(
             ISchedulerService schedulerService,
             IAssignmentRepository assignmentRepo,
@@ -171,9 +171,10 @@ namespace GuardScheduler
 
                 if (dlg.ShowDialog() == DialogResult.OK)
                 {
-                    var wordExporter = new WordExportService();
-                    wordExporter.ExportScheduleToWord(scheduleDays, dlg.FileName, persons, posts);
-                    MessageBox.Show("برنامه با موفقیت صادر شد.", "اطلاع", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    var exporter = new WordTemplateExporter(); // get ScheduleDay
+
+                    exporter.FillTemplate("Template.docx", "ScheduleOutput.docx", scheduleDays.FirstOrDefault(),posts,persons);
+
                 }
             }
         }

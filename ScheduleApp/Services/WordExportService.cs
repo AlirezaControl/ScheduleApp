@@ -1,117 +1,127 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using GuardScheduler.Models;
-using MD.PersianDateTime;
-using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using GuardScheduler.Models;
+using MD.PersianDateTime;
 
 namespace GuardScheduler.Services
 {
-    public interface IWordExportService
-    {
-        void ExportScheduleToWord(IEnumerable<ScheduleDay> scheduleDays, string filePath, List<Person> persons, List<Post> posts);
-    }
-
-    public class WordExportService : IWordExportService
+    public class WordTemplateExporter
     {
         /// <summary>
-        /// Exports a list of ScheduleDay objects to a Word document.
-        /// Each day has a table: posts as rows, hours as columns.
-        /// Dates are exported in Jalali format.
+        /// Fills a Word template with ScheduleDay data and saves it to outputPath.
         /// </summary>
-        public void ExportScheduleToWord(IEnumerable<ScheduleDay> scheduleDays, string filePath, List<Person> persons, List<Post> posts)
+        public void FillTemplate(
+            string templatePath,
+            string outputPath,
+            ScheduleDay day,
+            List<Post> posts,
+            List<Person> persons)
         {
-            using (var wordDoc = WordprocessingDocument.Create(filePath, WordprocessingDocumentType.Document))
+            if (!System.IO.File.Exists(templatePath))
+                throw new ArgumentException("Template file does not exist.", nameof(templatePath));
+
+            // Build key-value dictionary
+            var keyValues = BuildKeyValues(day, posts, persons);
+
+            // Copy template
+            System.IO.File.Copy(templatePath, outputPath, true);
+
+            using (WordprocessingDocument doc = WordprocessingDocument.Open(outputPath, true))
             {
-                MainDocumentPart mainPart = wordDoc.AddMainDocumentPart();
-                mainPart.Document = new Document();
-                Body body = mainPart.Document.AppendChild(new Body());
+                var body = doc.MainDocumentPart.Document.Body;
 
-                foreach (var day in scheduleDays)
+                // Replace placeholders
+                foreach (var text in body.Descendants<Text>())
                 {
-                    // Convert date to Jalali
-                    var jalaliDate = new PersianDateTime(day.Date).ToString("yyyy/MM/dd");
-
-                    var dayText = new Paragraph(
-                        new Run(
-                            new Text($"تاریخ: {jalaliDate}"))
-                        )
+                    foreach (var kvp in keyValues)
                     {
-                        ParagraphProperties = new ParagraphProperties(
-                            new Justification() { Val = JustificationValues.Center })
-                    };
-                    body.AppendChild(dayText);
-
-                    // Create table: first column Post, next 24 columns hours
-                    Table table = new Table();
-
-                    TableProperties tblProps = new TableProperties(
-                        new TableBorders(
-                            new TopBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 4 },
-                            new BottomBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 4 },
-                            new LeftBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 4 },
-                            new RightBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 4 },
-                            new InsideHorizontalBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 4 },
-                            new InsideVerticalBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 4 }
-                        )
-                    );
-                    table.AppendChild(tblProps);
-
-                    // Header row
-                    TableRow header = new TableRow();
-                    header.AppendChild(CreateCell("پست/ساعت"));
-                    for (int h = 0; h < 24; h++)
-                        header.AppendChild(CreateCell(h.ToString("00") + ":00"));
-                    table.AppendChild(header);
-
-                    foreach (var post in posts)
-                    {
-                        var slots = day.ShiftSlots.Where(s => s.PostId == post.Id).ToList();
-                        if (!slots.Any()) continue;
-
-                        TableRow row = new TableRow();
-                        row.AppendChild(CreateCell(post.Name));
-
-                        // Build 24-hour row
-                        for (int hour = 0; hour < 24; hour++)
-                        {
-                            var slot = slots.FirstOrDefault(s => s.Start.Hours <= hour && hour < s.Start.Hours + s.DurationHours);
-                            if (slot != null)
-                            {
-                                var assignment = day.Assignments.FirstOrDefault(a => a.ShiftSlotId == slot.Id);
-                                if (assignment != null)
-                                {
-                                    var person = persons.FirstOrDefault(p => p.Id == assignment.PersonId);
-                                    string name = person != null ? $"{person.FirstName} {person.LastName}" : "";
-                                    row.AppendChild(CreateCell(name));
-                                }
-                                else
-                                {
-                                    row.AppendChild(CreateCell(""));
-                                }
-                            }
-                            else
-                            {
-                                row.AppendChild(CreateCell(""));
-                            }
-                        }
-
-                        table.AppendChild(row);
+                        if (text.Text.Contains(kvp.Key))
+                            text.Text = text.Text.Replace(kvp.Key, kvp.Value);
                     }
-
-                    body.AppendChild(table);
-                    body.AppendChild(new Paragraph(new Run(new Text("")))); // empty line between days
                 }
+
+                doc.MainDocumentPart.Document.Save();
             }
         }
 
-        private TableCell CreateCell(string text)
+        private Dictionary<string, string> BuildKeyValues(ScheduleDay day, List<Post> posts, List<Person> persons)
         {
-            TableCell cell = new TableCell();
-            cell.Append(new Paragraph(new Run(new Text(text))));
-            return cell;
+            var dict = new Dictionary<string, string>();
+
+            // Dates
+            dict["{{Date}}"] = new PersianDateTime(day.Date).ToString("yyyy/MM/dd");
+            dict["{{DateNow}}"] = new PersianDateTime(DateTime.Now).ToString("yyyy/MM/dd");
+
+            // پاسبخش {{p1}}..{{p5}}
+            FillSlots(day, posts, persons, "پاس‌بخش", 5, "p", dict);
+
+            // دژبان {{d1}}..{{d12}}
+            FillSlots(day, posts, persons, "دژبان", 12, "d", dict);
+
+            // نگهبانی {{nd1}}..{{nd12}}, {{sh1}}..{{sh12}}, {{gh1}}..{{gh8}}
+            var nightSlots = day.ShiftSlots
+                .Where(s => posts.FirstOrDefault(p => p.Id == s.PostId)?.Name.Contains("نگهبانی") ?? false)
+                .OrderBy(s => s.Start)
+                .ToList();
+
+            for (int i = 0; i < nightSlots.Count; i++)
+            {
+                var slot = nightSlots[i];
+                var assignment = day.Assignments.FirstOrDefault(a => a.ShiftSlotId == slot.Id);
+                var name = assignment != null
+                    ? persons.FirstOrDefault(p => p.Id == assignment.PersonId)?.FullName() ?? ""
+                    : "";
+
+                dict[$"{{nd{i + 1}}}"] = name;
+                dict[$"{{sh{i + 1}}}"] = name;
+                if (i < 8) dict[$"{{gh{i + 1}}}"] = name;
+            }
+
+            // Other placeholders
+            dict["{{na}}"] = GetAssignedPerson(day, posts, persons, "نیروی آماده");
+            dict["{{R}}"] = GetAssignedPerson(day, posts, persons, "راننده آماده");
+            dict["{{mn}}"] = GetAssignedPerson(day, posts, persons, "مسئول نظافت");
+            dict["{{agh}}"] = GetAssignedPerson(day, posts, persons, "افسر قرارگاه");
+            dict["{{a1}}"] = GetAssignedPerson(day, posts, persons, "آشپزخانه1");
+            dict["{{a2}}"] = GetAssignedPerson(day, posts, persons, "آشپزخانه2");
+
+            return dict;
         }
+
+        private void FillSlots(ScheduleDay day, List<Post> posts, List<Person> persons,
+            string postName, int maxCount, string keyPrefix, Dictionary<string, string> dict)
+        {
+            var slots = day.ShiftSlots
+                .Where(s => posts.FirstOrDefault(p => p.Id == s.PostId)?.Name.Contains(postName) ?? false)
+                .OrderBy(s => s.Start)
+                .ToList();
+
+            for (int i = 0; i < maxCount; i++)
+            {
+                var slot = slots.ElementAtOrDefault(i);
+                var assignment = slot != null ? day.Assignments.FirstOrDefault(a => a.ShiftSlotId == slot.Id) : null;
+                dict[$"{{{keyPrefix}{i + 1}}}"] = assignment != null
+                    ? persons.FirstOrDefault(p => p.Id == assignment.PersonId)?.FullName() ?? ""
+                    : "";
+            }
+        }
+
+        private string GetAssignedPerson(ScheduleDay day, List<Post> posts, List<Person> persons, string postName)
+        {
+            var slot = day.ShiftSlots
+                .FirstOrDefault(s => posts.FirstOrDefault(p => p.Id == s.PostId)?.Name.Contains(postName) ?? false);
+
+            var assignment = slot != null ? day.Assignments.FirstOrDefault(a => a.ShiftSlotId == slot.Id) : null;
+
+            return assignment != null ? persons.FirstOrDefault(p => p.Id == assignment.PersonId)?.FullName() ?? "" : "";
+        }
+    }
+
+    public static class PersonExtensions
+    {
+        public static string FullName(this Person p) => p != null ? $"{p.FirstName} {p.LastName}" : "";
     }
 }
