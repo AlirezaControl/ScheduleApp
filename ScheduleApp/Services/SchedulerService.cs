@@ -1,4 +1,5 @@
-﻿using System;
+﻿// SchedulerService.cs
+using System;
 using System.Collections.Generic;
 using GuardScheduler.Data;
 using GuardScheduler.Models;
@@ -35,6 +36,8 @@ namespace GuardScheduler.Services
 
         public List<ScheduleDay> GenerateSchedule(DateTime fromDate, DateTime toDate)
         {
+            _shiftSlotRepo.DeleteAll();
+
             var days = new List<ScheduleDay>();
             var weekStart = fromDate.Date;
 

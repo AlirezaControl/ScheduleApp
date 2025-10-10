@@ -1,4 +1,6 @@
-﻿using System;
+﻿
+// PostScheduler.cs
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using GuardScheduler.Data;
@@ -69,11 +71,11 @@ namespace GuardScheduler.Services
         {
             // Assign shifts based on post role type
             if (post.AllowedRoles.Contains(Role.Negahban))
-                AssignShiftsForRole(day, post, Role.Negahban, 3, assignedByPost, rolePools, new[] { 6, 8, 10, 12, 2, 4, 14,16,18,20, 22,0}, 2);
+                AssignShiftsForRole(day, post, Role.Negahban, 3, assignedByPost, rolePools, new[] { 6, 8, 10, 12, 14, 16, 18, 20, 22, 0, 2, 4 }, 2);
             else if (post.AllowedRoles.Contains(Role.Dezhban) && post.Name != "نیروی آماده")
-                AssignShiftsForRole(day, post, Role.Dezhban, 3, assignedByPost, rolePools, new[] { 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22 }, 2);
+                AssignShiftsForRole(day, post, Role.Dezhban, 3, assignedByPost, rolePools, new[] { 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 0 }, 2);
             else if (post.AllowedRoles.Contains(Role.PasBakhsh) && post.Name != "نیروی آماده")
-                AssignShiftsForRole(day, post, Role.PasBakhsh, 2, assignedByPost, rolePools, new[] { 14, 18, 22, 2}, 4);
+                AssignShiftsForRole(day, post, Role.PasBakhsh, 2, assignedByPost, rolePools, new[] { 6, 14, 18, 22, 2 }, 4);
             else if (post.Name == "نیروی آماده")
                 AssignReadyForce(day, post, assignedByPost);
             else

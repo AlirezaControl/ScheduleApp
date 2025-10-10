@@ -62,6 +62,16 @@ namespace GuardScheduler.Data
             cmd.ExecuteNonQuery();
         }
 
+        // <-- New DeleteAll method
+        public void DeleteAll()
+        {
+            using var conn = GetConnection();
+            conn.Open();
+            string sql = "DELETE FROM ShiftSlot";
+            using var cmd = new SQLiteCommand(sql, conn);
+            cmd.ExecuteNonQuery();
+        }
+
         private ShiftSlot Map(SQLiteDataReader reader)
         {
             return new ShiftSlot

@@ -10,5 +10,6 @@ namespace GuardScheduler.Data
         ShiftSlot GetById(int id);
         int Insert(ShiftSlot slot);
         void Delete(int id);
+        void DeleteAll(); // <-- new method
     }
 }

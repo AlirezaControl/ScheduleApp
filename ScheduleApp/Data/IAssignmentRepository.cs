@@ -10,6 +10,7 @@ namespace GuardScheduler.Data
         List<Assignment> GetAssignmentsForDate(DateTime date);
         int Insert(Assignment a);
         void Delete(int id);
+        void DeleteAll(); // <-- new method
         List<Assignment> GetAssignmentsForSlot(int shiftSlotId);
     }
 }

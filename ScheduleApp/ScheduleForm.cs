@@ -509,6 +509,7 @@ namespace GuardScheduler
             }
 
             _scheduleRepo.DeleteAll();
+            _assignmentRepo.DeleteAll();
             var newSchedule = _schedulerService.GenerateSchedule(fromDate, toDate);
 
             if (!newSchedule.Any(d => d.ShiftSlots.Any()))

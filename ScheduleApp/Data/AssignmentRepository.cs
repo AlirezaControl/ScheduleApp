@@ -82,6 +82,16 @@ namespace GuardScheduler.Data
             cmd.ExecuteNonQuery();
         }
 
+        // <-- New DeleteAll method
+        public void DeleteAll()
+        {
+            using var conn = new SQLiteConnection(_connString);
+            conn.Open();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "DELETE FROM Assignment;";
+            cmd.ExecuteNonQuery();
+        }
+
         private Assignment ReadAssignment(SQLiteDataReader reader)
         {
             return new Assignment
@@ -100,9 +110,9 @@ namespace GuardScheduler.Data
             conn.Open();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-        SELECT Id, ShiftSlotId, PersonId, AssignedAt
-        FROM Assignment
-        WHERE ShiftSlotId = @shiftSlotId;";
+                SELECT Id, ShiftSlotId, PersonId, AssignedAt
+                FROM Assignment
+                WHERE ShiftSlotId = @shiftSlotId;";
             cmd.Parameters.AddWithValue("@shiftSlotId", shiftSlotId);
 
             using var reader = cmd.ExecuteReader();

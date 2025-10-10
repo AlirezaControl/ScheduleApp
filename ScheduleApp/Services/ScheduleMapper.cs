@@ -1,4 +1,6 @@
-﻿using System;
+﻿
+// ScheduleMapper.cs
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -57,35 +59,48 @@ namespace GuardScheduler.Services
                 if (person == null) continue;
 
                 string key = null;
+                var postName = post.Name ?? "";
 
                 // --- Determine key based on post type ---
-                if (post.Name.Contains("پاسبخش"))
+                if (postName.Contains("پاسبخش"))
                     key = $"p{pCounter++}";
-                else if (post.Name.Contains("دژبان") && !post.Name.Contains("نگهبان"))
+                else if (postName.Contains("دژبان") && !postName.Contains("نگهبان"))
                     key = $"d{dCounter++}";
-                else if (post.Name.Contains("نگهبان بالای دژبانی") || post.Name.Contains("ضلع دژبانی"))
+                else if (postName.Contains("نگهبان بالای دژبانی") || postName.Contains("ضلع دژبانی"))
                     key = FindTimeMappedKey(slot, ndMap);
-                else if (post.Name.Contains("نگهبان شرقی") || post.Name.Contains("ضلع شرقی"))
+                else if (postName.Contains("نگهبان شرقی") || postName.Contains("ضلع شرقی"))
                     key = FindTimeMappedKey(slot, shMap);
-                else if (post.Name.Contains("نگهبان غربی") || post.Name.Contains("ضلع غربی"))
+                else if (postName.Contains("نگهبان غربی") || postName.Contains("ضلع غربی"))
                     key = FindTimeMappedKey(slot, ghMap);
-                else if (post.Name.Contains("نیروی آماده"))
+                else if (postName.Contains("نیروی آماده"))
                     key = "na";
-                else if (post.Name.Contains("راننده"))
+                else if (postName.Contains("راننده"))
                     key = "R";
-                else if (post.Name.Contains("مسئول نظافت"))
+                else if (postName.Contains("مسئول نظافت"))
                     key = "mn";
-                else if (post.Name.Contains("افسر قرارگاه"))
+                else if (postName.Contains("افسر قرارگاه"))
                     key = "agh";
-                else if (post.Name.Contains("آشپز") || post.Name.Contains("آشپزخانه"))
+                else if (postName.Contains("آشپز") || postName.Contains("آشپزخانه"))
                     key = $"a{aCounter++}";
+                else if (postName.Contains("افسر جانشین"))
+                    key = "oj";
+                else if (postName.Contains("مسئول پاسدارخانه"))
+                    key = "mpk";
+                else if (postName.Contains("نظافت پاسدارخانه"))
+                    key = "npk";
+                else if (postName.Contains("نگهبانی درب دژبانی"))
+                    key = "ndb";
+                else if (postName.Contains("نگهبانی ضلع شرقی روز بعد"))
+                    key = "shd";
+                else if (postName.Contains("نگهبانی ضلع غربی روز بعد"))
+                    key = "ghd";
 
                 if (string.IsNullOrEmpty(key))
                     continue;
 
                 string fullName = $"{person.FirstName} {person.LastName}".Trim();
 
-                // ✅ SAFE: combine duplicates, never throws
+                // Combine duplicates with slash separator
                 if (keyValues.ContainsKey(key))
                 {
                     if (!keyValues[key].Contains(fullName))
@@ -100,9 +115,6 @@ namespace GuardScheduler.Services
             return keyValues;
         }
 
-        /// <summary>
-        /// Finds correct key (e.g., nd3) based on slot start hour.
-        /// </summary>
         private static string FindTimeMappedKey(ShiftSlot slot, Dictionary<int, string> map)
         {
             if (slot == null || map == null || map.Count == 0)
@@ -110,15 +122,15 @@ namespace GuardScheduler.Services
 
             int hour = slot.Start.Hours;
 
-            // Handle after midnight properly
-            if (hour == 0) hour = 24;
+            // Treat midnight as 24 for mapping last slot
+            if (hour == 0)
+                hour = 24;
 
-            // Direct match or nearest lower key
             if (map.ContainsKey(hour))
                 return map[hour];
 
-            int nearest = map.Keys.OrderBy(h => Math.Abs(h - hour)).First();
-            return map[nearest];
+            var closestKey = map.Keys.OrderBy(k => Math.Abs(k - hour)).First();
+            return map[closestKey];
         }
 
         private static string ToPersianDate(DateTime date)
