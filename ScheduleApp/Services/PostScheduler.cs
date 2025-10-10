@@ -200,7 +200,7 @@ namespace GuardScheduler.Services
             {
                 Date = day.Date,
                 PostId = postId,
-                Start = TimeSpan.FromHours(startHour),
+                Start = TimeSpan.FromHours(startHour), // convert to TimeSpan
                 DurationHours = duration,
                 SlotIndex = startHour
             };
