@@ -1,6 +1,4 @@
-﻿
-// PostScheduler.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using GuardScheduler.Data;
@@ -69,12 +67,12 @@ namespace GuardScheduler.Services
 
         private void AssignPostShifts(ScheduleDay day, Post post, Dictionary<string, HashSet<int>> assignedByPost, Dictionary<Role, List<int>> rolePools)
         {
-            // Assign shifts based on post role type
-            if (post.AllowedRoles.Contains(Role.Negahban))
+            // Use AllowedRolesList (List<Role>) instead of AllowedRoles (string)
+            if (post.AllowedRolesList.Contains(Role.Negahban))
                 AssignShiftsForRole(day, post, Role.Negahban, 3, assignedByPost, rolePools, new[] { 6, 8, 10, 12, 14, 16, 18, 20, 22, 0, 2, 4 }, 2);
-            else if (post.AllowedRoles.Contains(Role.Dezhban) && post.Name != "نیروی آماده")
+            else if (post.AllowedRolesList.Contains(Role.Dezhban) && post.Name != "نیروی آماده")
                 AssignShiftsForRole(day, post, Role.Dezhban, 3, assignedByPost, rolePools, new[] { 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 0 }, 2);
-            else if (post.AllowedRoles.Contains(Role.PasBakhsh) && post.Name != "نیروی آماده")
+            else if (post.AllowedRolesList.Contains(Role.PasBakhsh) && post.Name != "نیروی آماده")
                 AssignShiftsForRole(day, post, Role.PasBakhsh, 2, assignedByPost, rolePools, new[] { 6, 14, 18, 22, 2 }, 4);
             else if (post.Name == "نیروی آماده")
                 AssignReadyForce(day, post, assignedByPost);
@@ -159,7 +157,8 @@ namespace GuardScheduler.Services
         {
             var availablePersons = _personRepo.GetAll()
                 .Where(p => p.Available)
-                .Where(p => post.AllowedRoles.Contains(p.PrimaryRole))
+                // Use AllowedRolesList instead of AllowedRoles
+                .Where(p => post.AllowedRolesList.Contains(p.PrimaryRole))
                 .Where(p => !assignedByPost.Any(kvp => kvp.Key != post.Name && kvp.Value.Contains(p.Id)))
                 .ToList();
 

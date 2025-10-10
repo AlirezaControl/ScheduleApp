@@ -113,7 +113,7 @@ namespace GuardScheduler.Data
                 PrimaryRole = (Role)(reader.GetInt32(3) - 1),
                 SecondaryRole = reader.IsDBNull(4) ? null : (Role?)(reader.GetInt32(4) - 1),
                 RotationOrder = reader.GetInt32(5),
-                AllowedPostNames = reader.IsDBNull(6) ? new List<string>() : new List<string>(reader.GetString(6).Split(',')),
+                AllowedPostNames = "",
                 Available = !reader.IsDBNull(7) && reader.GetInt32(7) == 1
             };
         }

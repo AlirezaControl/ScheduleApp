@@ -10,8 +10,8 @@ public class Person
     public Role PrimaryRole { get; set; }
     public Role? SecondaryRole { get; set; }
     public int RotationOrder { get; set; }
-    public List<string> AllowedPostNames { get; set; } = new List<string>();
-    
+    public string AllowedPostNames { get; set; }
+
     // New property
     public bool Available { get; set; } = true;
 

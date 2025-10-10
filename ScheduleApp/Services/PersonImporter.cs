@@ -31,7 +31,8 @@ namespace GuardScheduler.Services
                     PrimaryRole = ParseRole(row["PrimaryRole"].ToString()), // Parse role from Excel
                     SecondaryRole = ParseRole(row["SecondaryRole"].ToString()), // Parse secondary role if any
                     RotationOrder = 0,       // default 0
-                    AllowedPostNames = new System.Collections.Generic.List<string>()
+                    AllowedPostNames = ""
+                
                 };
 
                 _repo.Insert(person);

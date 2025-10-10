@@ -13,7 +13,7 @@ namespace GuardScheduler.Data
         public PostRepository(string connString)
         {
             _connString = connString;
-            DatabaseInitializer.Initialize(connString); // Ensure the database is initialized
+            DatabaseInitializer.Initialize(connString);
         }
 
         public List<Post> GetAll()
@@ -58,7 +58,7 @@ namespace GuardScheduler.Data
                 SELECT last_insert_rowid();
             ";
             cmd.Parameters.AddWithValue("@name", post.Name);
-            cmd.Parameters.AddWithValue("@allowedRoles", string.Join(",", post.AllowedRoles));
+            cmd.Parameters.AddWithValue("@allowedRoles", post.AllowedRoles);
             cmd.Parameters.AddWithValue("@slotsPerDay", post.SlotsPerDay);
             cmd.Parameters.AddWithValue("@slotDurationHours", post.SlotDurationHours);
             cmd.Parameters.AddWithValue("@enforceRestNextDay", post.EnforceRestNextDay ? 1 : 0);
@@ -81,7 +81,7 @@ namespace GuardScheduler.Data
                 WHERE Id=@id;
             ";
             cmd.Parameters.AddWithValue("@name", post.Name);
-            cmd.Parameters.AddWithValue("@allowedRoles", string.Join(",", post.AllowedRoles));
+            cmd.Parameters.AddWithValue("@allowedRoles", post.AllowedRoles);
             cmd.Parameters.AddWithValue("@slotsPerDay", post.SlotsPerDay);
             cmd.Parameters.AddWithValue("@slotDurationHours", post.SlotDurationHours);
             cmd.Parameters.AddWithValue("@enforceRestNextDay", post.EnforceRestNextDay ? 1 : 0);
@@ -106,7 +106,7 @@ namespace GuardScheduler.Data
             {
                 Id = reader.GetInt32(0),
                 Name = reader.GetString(1),
-                AllowedRoles = reader.IsDBNull(2) ? new List<Role>() : reader.GetString(2).Split(',').Select(r => (Role)Enum.Parse(typeof(Role), r)).ToList(),
+                AllowedRoles = reader.IsDBNull(2) ? "" : reader.GetString(2),
                 SlotsPerDay = reader.GetInt32(3),
                 SlotDurationHours = reader.GetInt32(4),
                 EnforceRestNextDay = Convert.ToBoolean(reader.GetInt32(5))

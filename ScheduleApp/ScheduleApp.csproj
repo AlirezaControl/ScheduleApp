@@ -219,6 +219,12 @@
     <Compile Include="UI\DetailedScheduleForm.Tables.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="UI\ModernSelectionPopup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\ModernSelectionPopup.Designer.cs">
+      <DependentUpon>ModernSelectionPopup.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\ScheduleForm.cs">
       <SubType>Form</SubType>
     </Compile>
