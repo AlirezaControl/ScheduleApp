@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using GuardScheduler.Models;
 using GuardScheduler.Services;
 using GuardScheduler.Data;
+using PersianDateTimeControl;
 using MD.PersianDateTime;
 
 namespace GuardScheduler
@@ -25,17 +26,12 @@ namespace GuardScheduler
             IScheduleDayRepository scheduleRepo)
         {
             InitializeComponent();
+
             _schedulerService = schedulerService;
             _assignmentRepo = assignmentRepo;
             _personRepo = personRepo;
             _postRepo = postRepo;
             _scheduleRepo = scheduleRepo;
-
-            _personRepo.PersonChanged += (s, e) =>
-            {
-                // Only regenerate schedule if the person became available/unavailable
-                btnGenerateSchedule_Click(null, null);
-            };
 
             dateTimePickerFrom.Value = DateTime.Now;
             dateTimePickerTo.Value = DateTime.Now;
@@ -62,7 +58,7 @@ namespace GuardScheduler
 
         private int GetPostDurationHours(Post post)
         {
-            if (post.Name == "نیروی آماده") return 24;
+            if (post.Name.Contains("نیروی آماده")) return 24;
             if (post.AllowedRoles.Contains(Role.Negahban)) return 2;
             if (post.AllowedRoles.Contains(Role.PasBakhsh)) return 4;
             if (post.AllowedRoles.Contains(Role.Dezhban)) return 8;
@@ -126,7 +122,7 @@ namespace GuardScheduler
                         }
                     }
 
-                    if (post.Name == "نیروی آماده")
+                    if (post.Name.Contains("نیروی آماده"))
                         dgv24HourPosts.Rows.Add(rowCells);
                     else if (post.AllowedRoles.Contains(Role.Negahban))
                         dgvNegahban.Rows.Add(rowCells);
@@ -162,7 +158,7 @@ namespace GuardScheduler
             using var dlg = new SaveFileDialog
             {
                 Filter = "Word Document|*.docx",
-                FileName = $"Schedule_{fromDate:yyyyMMdd}_{toDate:yyyyMMdd}.docx"
+                FileName = $"لوحه نگهبانی_{fromDate:yyyyMMdd}_{toDate:yyyyMMdd}.docx"
             };
 
             if (dlg.ShowDialog() != DialogResult.OK) return;
@@ -172,7 +168,7 @@ namespace GuardScheduler
                 var exporter = new WordTemplateExporter();
                 exporter.Export(TemplatePath, dlg.FileName, scheduleDays.First(), posts, persons);
 
-                MessageBox.Show("فایل با موفقیت ایجاد شد.", "موفقیت", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("لوحه نگهبانی با موفقیت ایجاد شد.", "موفقیت", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
