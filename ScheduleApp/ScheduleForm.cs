@@ -221,7 +221,6 @@ namespace GuardScheduler
             bottomPanel.Controls.Add(tableBottom);
         }
 
-        // ------------------------- TABLE INIT -------------------------
         private void InitializeTables()
         {
             Color headerBackColor = Color.FromArgb(30, 144, 255);
@@ -375,14 +374,18 @@ namespace GuardScheduler
             popup.ShowDialog();
         }
 
-        // ------------------------- ALLOWED PERSONS LOGIC -------------------------
         private List<AllowedPerson> GetAllowedPersonsForLabel(string labelTag)
         {
             if (string.IsNullOrEmpty(labelTag)) return new List<AllowedPerson>();
 
             var allPersons = _personRepo.GetAll().Where(p => p.Available).ToList();
 
-            // Map labelTag to role(s)
+            // Get today’s assignments to exclude those already on duty
+            var todayAssignments = _assignmentRepo.GetAssignmentsByDate(_currentDateNow)
+                ?.Select(a => a.PersonId)
+                .Distinct()
+                .ToHashSet() ?? new HashSet<int>();
+
             List<Role> allowedRoles = labelTag switch
             {
                 var t when t.StartsWith("p") => new List<Role> { Role.PasBakhsh },
@@ -398,9 +401,12 @@ namespace GuardScheduler
             };
 
             return allPersons
-                .Where(p => allowedRoles.Any(r =>
-                    p.PrimaryRole == r || p.SecondaryRole == r || (p.AllowedPostNames != null && p.AllowedPostNames.Contains(r.ToString()))
-                ))
+                .Where(p =>
+                    !todayAssignments.Contains(p.Id) &&
+                    allowedRoles.Any(r =>
+                        p.PrimaryRole == r || p.SecondaryRole == r ||
+                        (p.AllowedPostNames != null && p.AllowedPostNames.Contains(r.ToString()))
+                    ))
                 .OrderBy(p => p.RotationOrder)
                 .Select(p => new AllowedPerson { Id = p.Id, DisplayName = $"{p.FirstName} {p.LastName}" })
                 .ToList();
@@ -412,7 +418,6 @@ namespace GuardScheduler
             public string DisplayName { get; set; }
         }
 
-        // ------------------------- HELPER -------------------------
         private void AddCellToTable(TableLayoutPanel table, string text, int col, int row, Color backColor, Color foreColor, Font font, bool bold)
         {
             var lbl = new Label()
@@ -428,7 +433,6 @@ namespace GuardScheduler
             table.Controls.Add(lbl, col, row);
         }
 
-        // ------------------------- BUTTON LOGIC -------------------------
         private void BtnGenerateSchedule_Click(object sender, EventArgs e)
         {
             DateTime fromDate = dateTimePickerFrom.Value.Value.Date;

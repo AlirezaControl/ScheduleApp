@@ -8,9 +8,13 @@ namespace GuardScheduler.Data
     {
         List<Assignment> GetAssignmentsForPersonOnDate(int personId, DateTime date);
         List<Assignment> GetAssignmentsForDate(DateTime date);
+
+        // ✅ New alias to match form usage
+        List<Assignment> GetAssignmentsByDate(DateTime date);
+
         int Insert(Assignment a);
         void Delete(int id);
-        void DeleteAll(); // <-- new method
+        void DeleteAll();
         List<Assignment> GetAssignmentsForSlot(int shiftSlotId);
     }
 }

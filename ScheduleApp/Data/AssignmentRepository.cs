@@ -12,7 +12,7 @@ namespace GuardScheduler.Data
         public AssignmentRepository(string connString)
         {
             _connString = connString;
-            DatabaseInitializer.Initialize(connString); // Ensure the database is initialized
+            DatabaseInitializer.Initialize(connString); // Ensure DB structure exists
         }
 
         public List<Assignment> GetAssignmentsForPersonOnDate(int personId, DateTime date)
@@ -20,6 +20,7 @@ namespace GuardScheduler.Data
             var assignments = new List<Assignment>();
             using var conn = new SQLiteConnection(_connString);
             conn.Open();
+
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
                 SELECT Id, ShiftSlotId, PersonId, AssignedAt
@@ -41,6 +42,7 @@ namespace GuardScheduler.Data
             var assignments = new List<Assignment>();
             using var conn = new SQLiteConnection(_connString);
             conn.Open();
+
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
                 SELECT Id, ShiftSlotId, PersonId, AssignedAt
@@ -56,10 +58,17 @@ namespace GuardScheduler.Data
             return assignments;
         }
 
+        // ✅ New alias for convenience (used in your form)
+        public List<Assignment> GetAssignmentsByDate(DateTime date)
+        {
+            return GetAssignmentsForDate(date);
+        }
+
         public int Insert(Assignment assignment)
         {
             using var conn = new SQLiteConnection(_connString);
             conn.Open();
+
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
                 INSERT INTO Assignment (ShiftSlotId, PersonId, AssignedAt)
@@ -76,31 +85,21 @@ namespace GuardScheduler.Data
         {
             using var conn = new SQLiteConnection(_connString);
             conn.Open();
+
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "DELETE FROM Assignment WHERE Id = @id;";
             cmd.Parameters.AddWithValue("@id", id);
             cmd.ExecuteNonQuery();
         }
 
-        // <-- New DeleteAll method
         public void DeleteAll()
         {
             using var conn = new SQLiteConnection(_connString);
             conn.Open();
+
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "DELETE FROM Assignment;";
             cmd.ExecuteNonQuery();
-        }
-
-        private Assignment ReadAssignment(SQLiteDataReader reader)
-        {
-            return new Assignment
-            {
-                Id = reader.GetInt32(0),
-                ShiftSlotId = reader.GetInt32(1),
-                PersonId = reader.GetInt32(2),
-                AssignedAt = reader.GetDateTime(3)
-            };
         }
 
         public List<Assignment> GetAssignmentsForSlot(int shiftSlotId)
@@ -108,6 +107,7 @@ namespace GuardScheduler.Data
             var assignments = new List<Assignment>();
             using var conn = new SQLiteConnection(_connString);
             conn.Open();
+
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
                 SELECT Id, ShiftSlotId, PersonId, AssignedAt
@@ -121,6 +121,17 @@ namespace GuardScheduler.Data
                 assignments.Add(ReadAssignment(reader));
             }
             return assignments;
+        }
+
+        private Assignment ReadAssignment(SQLiteDataReader reader)
+        {
+            return new Assignment
+            {
+                Id = reader.GetInt32(0),
+                ShiftSlotId = reader.GetInt32(1),
+                PersonId = reader.GetInt32(2),
+                AssignedAt = reader.GetDateTime(3)
+            };
         }
     }
 }
