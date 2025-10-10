@@ -58,7 +58,6 @@ namespace GuardScheduler
 
             _currentDateNow = DateTime.Now;
 
-            // Initialize PersianDatePickers with current date
             dateTimePickerFrom.Value = _currentDateNow;
             dateTimePickerTo.Value = _currentDateNow;
         }
@@ -73,7 +72,6 @@ namespace GuardScheduler
             this.StartPosition = FormStartPosition.CenterScreen;
             this.BackColor = Color.FromArgb(245, 245, 245);
 
-            // Main layout panel
             var mainLayout = new TableLayoutPanel()
             {
                 Dock = DockStyle.Fill,
@@ -82,14 +80,13 @@ namespace GuardScheduler
                 Padding = new Padding(15),
                 AutoScroll = true,
             };
-            mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 65)); // Title
-            mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 50)); // DatePickers + buttons
-            mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 75));  // Tables
-            mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 25));  // Bottom table
+            mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 65));
+            mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 50));
+            mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 75));
+            mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
 
             this.Controls.Add(mainLayout);
 
-            // Title Label
             lblTitle = new Label()
             {
                 Text = "لوحه نگهبانی مرکز فاوا",
@@ -100,7 +97,6 @@ namespace GuardScheduler
             };
             mainLayout.Controls.Add(lblTitle, 0, 0);
 
-            // Buttons and DatePickers Panel
             buttonsPanel = new Panel()
             {
                 Dock = DockStyle.Fill,
@@ -110,7 +106,6 @@ namespace GuardScheduler
             };
             mainLayout.Controls.Add(buttonsPanel, 0, 1);
 
-            // PersianDatePickers
             dateTimePickerFrom = new PersianDatePicker()
             {
                 Location = new Point(860, 12),
@@ -149,7 +144,6 @@ namespace GuardScheduler
             };
             buttonsPanel.Controls.Add(lblTo);
 
-            // Buttons with refined style
             btnGenerateSchedule = new Button()
             {
                 Text = "تولید برنامه",
@@ -195,7 +189,6 @@ namespace GuardScheduler
             btnOpenPersonList.Click += BtnOpenPersonList_Click;
             buttonsPanel.Controls.Add(btnOpenPersonList);
 
-            // Tables Panel
             tablesPanel = new Panel()
             {
                 Dock = DockStyle.Fill,
@@ -215,7 +208,6 @@ namespace GuardScheduler
                 y += t.Height + 20;
             }
 
-            // Bottom Panel for bottom table without texts at bottom
             bottomPanel = new Panel()
             {
                 Dock = DockStyle.Fill,
@@ -229,222 +221,97 @@ namespace GuardScheduler
             bottomPanel.Controls.Add(tableBottom);
         }
 
+        // ------------------------- TABLE INIT -------------------------
         private void InitializeTables()
         {
-            // Common styles
             Color headerBackColor = Color.FromArgb(30, 144, 255);
             Color headerForeColor = Color.White;
             Font headerFont = new Font("Tahoma", 11, FontStyle.Bold);
             Font cellFont = new Font("Tahoma", 10);
 
-            // Pasbakhsh table (6 columns, 2 rows)
-            tablePasbakhsh = new TableLayoutPanel()
-            {
-                ColumnCount = 6,
-                RowCount = 2,
-                Width = 920,
-                Height = 70,
-                CellBorderStyle = TableLayoutPanelCellBorderStyle.Single,
-                BackColor = Color.White,
-            };
+            tablePasbakhsh = CreateTable(6, 2, 920, 70);
+            string[] pasbakhshHeaders = { "زمان شیفت", "06-14", "14-18", "18-22", "22-02", "02-06" };
             for (int i = 0; i < 6; i++)
-                tablePasbakhsh.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f / 6));
-            tablePasbakhsh.RowStyles.Add(new RowStyle(SizeType.Absolute, 35));
-            tablePasbakhsh.RowStyles.Add(new RowStyle(SizeType.Absolute, 35));
-
-            AddCellToTable(tablePasbakhsh, "زمان شیفت", 0, 0, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tablePasbakhsh, "06-14", 1, 0, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tablePasbakhsh, "14-18", 2, 0, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tablePasbakhsh, "18-22", 3, 0, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tablePasbakhsh, "22-02", 4, 0, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tablePasbakhsh, "02-06", 5, 0, headerBackColor, headerForeColor, headerFont, true);
-
+                AddCellToTable(tablePasbakhsh, pasbakhshHeaders[i], i, 0, headerBackColor, headerForeColor, headerFont, true);
             AddCellToTable(tablePasbakhsh, "نام پاسبخش", 0, 1, Color.FromArgb(240, 248, 255), Color.Black, cellFont, false);
-
             for (int i = 1; i < 6; i++)
-            {
-                var lbl = CreateSelectableLabel($"p{i}");
-                tablePasbakhsh.Controls.Add(lbl, i, 1);
-            }
+                tablePasbakhsh.Controls.Add(CreateSelectableLabel($"p{i}"), i, 1);
 
-            // Dezhban Morning table (6 columns, 2 rows)
-            tableDezhbanMorning = new TableLayoutPanel()
-            {
-                ColumnCount = 6,
-                RowCount = 2,
-                Width = 920,
-                Height = 70,
-                CellBorderStyle = TableLayoutPanelCellBorderStyle.Single,
-                BackColor = Color.White,
-            };
+            tableDezhbanMorning = CreateTable(6, 2, 920, 70);
+            string[] dezhbanMorningHeaders = { "زمان شیفت", "08-10", "10-12", "12-14", "14-16", "16-18" };
             for (int i = 0; i < 6; i++)
-                tableDezhbanMorning.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f / 6));
-            tableDezhbanMorning.RowStyles.Add(new RowStyle(SizeType.Absolute, 35));
-            tableDezhbanMorning.RowStyles.Add(new RowStyle(SizeType.Absolute, 35));
-
-            AddCellToTable(tableDezhbanMorning, "زمان شیفت", 0, 0, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tableDezhbanMorning, "08-10", 1, 0, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tableDezhbanMorning, "10-12", 2, 0, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tableDezhbanMorning, "12-14", 3, 0, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tableDezhbanMorning, "14-16", 4, 0, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tableDezhbanMorning, "16-18", 5, 0, headerBackColor, headerForeColor, headerFont, true);
-
+                AddCellToTable(tableDezhbanMorning, dezhbanMorningHeaders[i], i, 0, headerBackColor, headerForeColor, headerFont, true);
             AddCellToTable(tableDezhbanMorning, "نام دژبان", 0, 1, Color.FromArgb(240, 248, 255), Color.Black, cellFont, false);
-
             for (int i = 1; i < 6; i++)
-            {
-                var lbl = CreateSelectableLabel($"d{i}");
-                tableDezhbanMorning.Controls.Add(lbl, i, 1);
-            }
+                tableDezhbanMorning.Controls.Add(CreateSelectableLabel($"d{i}"), i, 1);
 
-            // Dezhban Evening table (6 columns, 2 rows)
-            tableDezhbanEvening = new TableLayoutPanel()
-            {
-                ColumnCount = 6,
-                RowCount = 2,
-                Width = 920,
-                Height = 70,
-                CellBorderStyle = TableLayoutPanelCellBorderStyle.Single,
-                BackColor = Color.White,
-            };
+            tableDezhbanEvening = CreateTable(6, 2, 920, 70);
+            string[] dezhbanEveningHeaders = { "زمان شیفت", "20-22", "22-00", "00-02", "02-04", "04-06" };
             for (int i = 0; i < 6; i++)
-                tableDezhbanEvening.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f / 6));
-            tableDezhbanEvening.RowStyles.Add(new RowStyle(SizeType.Absolute, 35));
-            tableDezhbanEvening.RowStyles.Add(new RowStyle(SizeType.Absolute, 35));
-
-            AddCellToTable(tableDezhbanEvening, "زمان شیفت", 0, 0, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tableDezhbanEvening, "20-22", 1, 0, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tableDezhbanEvening, "22-00", 2, 0, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tableDezhbanEvening, "00-02", 3, 0, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tableDezhbanEvening, "02-04", 4, 0, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tableDezhbanEvening, "04-06", 5, 0, headerBackColor, headerForeColor, headerFont, true);
-
+                AddCellToTable(tableDezhbanEvening, dezhbanEveningHeaders[i], i, 0, headerBackColor, headerForeColor, headerFont, true);
             AddCellToTable(tableDezhbanEvening, "نام دژبان", 0, 1, Color.FromArgb(240, 248, 255), Color.Black, cellFont, false);
+            for (int i = 1; i < 6; i++)
+                tableDezhbanEvening.Controls.Add(CreateSelectableLabel($"d{i + 6}"), i, 1);
 
-            for (int i = 7; i <= 12; i++)
-            {
-                var lbl = CreateSelectableLabel($"d{i}");
-                tableDezhbanEvening.Controls.Add(lbl, i - 6, 1);
-            }
-
-            // Combined Dezhban/Shor and Gharb table (7 columns, 7 rows)
-            tableDezhbanCombined = new TableLayoutPanel()
-            {
-                ColumnCount = 7,
-                RowCount = 7,
-                Width = 920,
-                Height = 230,
-                CellBorderStyle = TableLayoutPanelCellBorderStyle.Single,
-                BackColor = Color.White,
-            };
+            tableDezhbanCombined = CreateTable(7, 7, 920, 230);
+            string[] combinedHeaders = { "ساعت", "ضلع دژبانی (صبح)", "ضلع دژبانی (عصر)", "ضلع شرقی (صبح)", "ضلع شرقی (عصر)", "ضلع غربی (صبح)", "ضلع غربی (عصر)" };
             for (int i = 0; i < 7; i++)
-                tableDezhbanCombined.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f / 7));
-            tableDezhbanCombined.RowStyles.Add(new RowStyle(SizeType.Absolute, 35)); // header
-            for (int i = 1; i < 7; i++)
-                tableDezhbanCombined.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
-
-            AddCellToTable(tableDezhbanCombined, "ساعت", 0, 0, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tableDezhbanCombined, "ضلع دژبانی (صبح)", 1, 0, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tableDezhbanCombined, "ضلع دژبانی (عصر)", 2, 0, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tableDezhbanCombined, "ضلع شرقی (صبح)", 3, 0, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tableDezhbanCombined, "ضلع شرقی (عصر)", 4, 0, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tableDezhbanCombined, "ضلع غربی (صبح)", 5, 0, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tableDezhbanCombined, "ضلع غربی (عصر)", 6, 0, headerBackColor, headerForeColor, headerFont, true);
+                AddCellToTable(tableDezhbanCombined, combinedHeaders[i], i, 0, headerBackColor, headerForeColor, headerFont, true);
 
             string[] hours = { "06-08", "08-10", "10-12", "12-02", "02-04", "04-06" };
             for (int row = 1; row <= 6; row++)
             {
                 AddCellToTable(tableDezhbanCombined, hours[row - 1], 0, row, Color.FromArgb(240, 248, 255), Color.Black, cellFont, false);
 
-                var nd1 = CreateSelectableLabel($"nd{row}");
-                tableDezhbanCombined.Controls.Add(nd1, 1, row);
-
-                var nd2 = CreateSelectableLabel($"nd{row + 6}");
-                tableDezhbanCombined.Controls.Add(nd2, 2, row);
-
-                var sh1 = CreateSelectableLabel($"sh{row}");
-                tableDezhbanCombined.Controls.Add(sh1, 3, row);
-
-                var sh2 = CreateSelectableLabel($"sh{row + 6}");
-                tableDezhbanCombined.Controls.Add(sh2, 4, row);
-
-                var gh1 = CreateSelectableLabel($"gh{row}");
-                tableDezhbanCombined.Controls.Add(gh1, 5, row);
-
-                var gh2 = CreateSelectableLabel($"gh{row + 6}");
-                tableDezhbanCombined.Controls.Add(gh2, 6, row);
+                tableDezhbanCombined.Controls.Add(CreateSelectableLabel($"nd{row}"), 1, row);
+                tableDezhbanCombined.Controls.Add(CreateSelectableLabel($"nd{row + 6}"), 2, row);
+                tableDezhbanCombined.Controls.Add(CreateSelectableLabel($"sh{row}"), 3, row);
+                tableDezhbanCombined.Controls.Add(CreateSelectableLabel($"sh{row + 6}"), 4, row);
+                tableDezhbanCombined.Controls.Add(CreateSelectableLabel($"gh{row}"), 5, row);
+                tableDezhbanCombined.Controls.Add(CreateSelectableLabel($"gh{row + 6}"), 6, row);
             }
+        }
+
+        private TableLayoutPanel CreateTable(int cols, int rows, int width, int height)
+        {
+            var t = new TableLayoutPanel()
+            {
+                ColumnCount = cols,
+                RowCount = rows,
+                Width = width,
+                Height = height,
+                CellBorderStyle = TableLayoutPanelCellBorderStyle.Single,
+                BackColor = Color.White
+            };
+            for (int i = 0; i < cols; i++)
+                t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f / cols));
+            for (int i = 0; i < rows; i++)
+                t.RowStyles.Add(new RowStyle(SizeType.Absolute, height / rows));
+            return t;
         }
 
         private void InitializeBottomTable()
         {
-            // Bottom table with multiple rows and columns for other roles
-            tableBottom = new TableLayoutPanel()
-            {
-                ColumnCount = 6,
-                RowCount = 6,
-                Width = 920,
-                Height = 180,
-                CellBorderStyle = TableLayoutPanelCellBorderStyle.Single,
-                BackColor = Color.White,
-            };
-            for (int i = 0; i < 6; i++)
-                tableBottom.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f / 6));
-            for (int i = 0; i < 6; i++)
-                tableBottom.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
-
+            tableBottom = CreateTable(6, 6, 920, 180);
             Font headerFont = new Font("Tahoma", 10, FontStyle.Bold);
             Font cellFont = new Font("Tahoma", 10);
-
             Color headerBackColor = Color.FromArgb(30, 144, 255);
             Color headerForeColor = Color.White;
 
             AddCellToTable(tableBottom, "مسئول بازداشتگاه", 0, 0, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tableBottom, "", 1, 0, Color.White, Color.Black, cellFont, false);
-            AddCellToTable(tableBottom, "نیروی آماده", 2, 0, headerBackColor, headerForeColor, headerFont, true);
-            var naLabel = CreateSelectableLabel("na");
-            tableBottom.Controls.Add(naLabel, 3, 0);
-            AddCellToTable(tableBottom, "", 4, 0, Color.White, Color.Black, cellFont, false);
-            AddCellToTable(tableBottom, "", 5, 0, Color.White, Color.Black, cellFont, false);
+            tableBottom.Controls.Add(CreateSelectableLabel("na"), 3, 0);
 
             AddCellToTable(tableBottom, "راننده آماده", 0, 1, headerBackColor, headerForeColor, headerFont, true);
-            var rLabel = CreateSelectableLabel("R");
-            tableBottom.Controls.Add(rLabel, 1, 1);
-            AddCellToTable(tableBottom, "نظافت آسایشگاه", 2, 1, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tableBottom, "", 3, 1, Color.White, Color.Black, cellFont, false);
-            AddCellToTable(tableBottom, "", 4, 1, Color.White, Color.Black, cellFont, false);
-            AddCellToTable(tableBottom, "", 5, 1, Color.White, Color.Black, cellFont, false);
+            tableBottom.Controls.Add(CreateSelectableLabel("R"), 1, 1);
 
             AddCellToTable(tableBottom, "مسئول نظافت: حمام/سلف/سرویس", 0, 2, headerBackColor, headerForeColor, headerFont, true);
-            var mnLabel = CreateSelectableLabel("mn");
-            tableBottom.Controls.Add(mnLabel, 1, 2);
-            AddCellToTable(tableBottom, "افراد بازداشتی", 2, 2, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tableBottom, "", 3, 2, Color.White, Color.Black, cellFont, false);
-            AddCellToTable(tableBottom, "", 4, 2, Color.White, Color.Black, cellFont, false);
-            AddCellToTable(tableBottom, "", 5, 2, Color.White, Color.Black, cellFont, false);
+            tableBottom.Controls.Add(CreateSelectableLabel("mn"), 1, 2);
 
-            AddCellToTable(tableBottom, "", 0, 3, Color.White, Color.Black, cellFont, false);
-            AddCellToTable(tableBottom, "", 1, 3, Color.White, Color.Black, cellFont, false);
             AddCellToTable(tableBottom, "افسر قرارگاه", 2, 3, headerBackColor, headerForeColor, headerFont, true);
-            var aghLabel = CreateSelectableLabel("agh");
-            tableBottom.Controls.Add(aghLabel, 3, 3);
-            AddCellToTable(tableBottom, "", 4, 3, Color.White, Color.Black, cellFont, false);
-            AddCellToTable(tableBottom, "", 5, 3, Color.White, Color.Black, cellFont, false);
+            tableBottom.Controls.Add(CreateSelectableLabel("agh"), 3, 3);
 
-            AddCellToTable(tableBottom, "شیفت آتش نشانی", 0, 4, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tableBottom, "", 1, 4, Color.White, Color.Black, cellFont, false);
             AddCellToTable(tableBottom, "شیفت آشپزخانه", 2, 4, headerBackColor, headerForeColor, headerFont, true);
-            var a12Label = CreateSelectableLabel("a1/a2");
-            tableBottom.Controls.Add(a12Label, 3, 4);
-            AddCellToTable(tableBottom, "", 4, 4, Color.White, Color.Black, cellFont, false);
-            AddCellToTable(tableBottom, "", 5, 4, Color.White, Color.Black, cellFont, false);
-
-            AddCellToTable(tableBottom, "اتاق افسر جانشین و افسر نگهبانی", 0, 5, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tableBottom, "", 1, 5, Color.White, Color.Black, cellFont, false);
-            AddCellToTable(tableBottom, "مسئول پاسدارخانه", 2, 5, headerBackColor, headerForeColor, headerFont, true);
-            AddCellToTable(tableBottom, "", 3, 5, Color.White, Color.Black, cellFont, false);
-            AddCellToTable(tableBottom, "", 4, 5, Color.White, Color.Black, cellFont, false);
-            AddCellToTable(tableBottom, "", 5, 5, Color.White, Color.Black, cellFont, false);
+            tableBottom.Controls.Add(CreateSelectableLabel("a1/a2"), 3, 4);
         }
 
         private Label CreateSelectableLabel(string tag)
@@ -461,12 +328,91 @@ namespace GuardScheduler
                 Font = new Font("Tahoma", 10, FontStyle.Regular),
                 Margin = new Padding(1),
             };
-            lbl.Click += Label_Click;
             lbl.MouseEnter += (s, e) => { if (lbl.BackColor == Color.White) lbl.BackColor = Color.FromArgb(220, 235, 255); };
             lbl.MouseLeave += (s, e) => { if (lbl.BackColor == Color.FromArgb(220, 235, 255)) lbl.BackColor = Color.White; };
+            lbl.DoubleClick += Label_DoubleClick;
             return lbl;
         }
 
+        private void Label_DoubleClick(object sender, EventArgs e)
+        {
+            if (!(sender is Label lbl)) return;
+
+            var allowedPersons = GetAllowedPersonsForLabel(lbl.Tag?.ToString());
+
+            using var popup = new Form()
+            {
+                Size = new Size(250, 300),
+                StartPosition = FormStartPosition.CenterParent,
+                FormBorderStyle = FormBorderStyle.FixedToolWindow,
+                Text = "انتخاب نفر",
+            };
+            var listBox = new ListBox()
+            {
+                Dock = DockStyle.Fill,
+                DataSource = allowedPersons,
+                DisplayMember = "DisplayName",
+                ValueMember = "Id"
+            };
+            popup.Controls.Add(listBox);
+
+            var btn = new Button()
+            {
+                Text = "انتخاب",
+                Dock = DockStyle.Bottom,
+                Height = 35
+            };
+            btn.Click += (s, args) =>
+            {
+                if (listBox.SelectedItem is AllowedPerson selected)
+                {
+                    lbl.Text = selected.DisplayName;
+                    popup.Close();
+                }
+            };
+            popup.Controls.Add(btn);
+
+            popup.ShowDialog();
+        }
+
+        // ------------------------- ALLOWED PERSONS LOGIC -------------------------
+        private List<AllowedPerson> GetAllowedPersonsForLabel(string labelTag)
+        {
+            if (string.IsNullOrEmpty(labelTag)) return new List<AllowedPerson>();
+
+            var allPersons = _personRepo.GetAll().Where(p => p.Available).ToList();
+
+            // Map labelTag to role(s)
+            List<Role> allowedRoles = labelTag switch
+            {
+                var t when t.StartsWith("p") => new List<Role> { Role.PasBakhsh },
+                var t when t.StartsWith("d") => new List<Role> { Role.Dezhban },
+                var t when t.StartsWith("nd") => new List<Role> { Role.Negahban },
+                var t when t.StartsWith("sh") => new List<Role> { Role.Negahban },
+                var t when t.StartsWith("gh") => new List<Role> { Role.Negahban },
+                var t when t.StartsWith("R") => new List<Role> { Role.Ranandeh },
+                var t when t.StartsWith("mn") => new List<Role> { Role.GoruhB },
+                var t when t.StartsWith("agh") => new List<Role> { Role.AfsarGharargah },
+                var t when t.StartsWith("a1") || t.StartsWith("a2") => new List<Role> { Role.KomakAshpaz },
+                _ => new List<Role>()
+            };
+
+            return allPersons
+                .Where(p => allowedRoles.Any(r =>
+                    p.PrimaryRole == r || p.SecondaryRole == r || (p.AllowedPostNames != null && p.AllowedPostNames.Contains(r.ToString()))
+                ))
+                .OrderBy(p => p.RotationOrder)
+                .Select(p => new AllowedPerson { Id = p.Id, DisplayName = $"{p.FirstName} {p.LastName}" })
+                .ToList();
+        }
+
+        public class AllowedPerson
+        {
+            public int Id { get; set; }
+            public string DisplayName { get; set; }
+        }
+
+        // ------------------------- HELPER -------------------------
         private void AddCellToTable(TableLayoutPanel table, string text, int col, int row, Color backColor, Color foreColor, Font font, bool bold)
         {
             var lbl = new Label()
@@ -482,21 +428,7 @@ namespace GuardScheduler
             table.Controls.Add(lbl, col, row);
         }
 
-        private void Label_Click(object sender, EventArgs e)
-        {
-            if (sender is Label lbl)
-            {
-                // Toggle selection color for demonstration
-                if (lbl.BackColor == Color.White)
-                    lbl.BackColor = Color.FromArgb(198, 239, 206);
-                else
-                    lbl.BackColor = Color.White;
-
-                // Here you can implement a dialog or dropdown to select/change the person assigned to this cell
-                // For simplicity, just toggling color on click
-            }
-        }
-
+        // ------------------------- BUTTON LOGIC -------------------------
         private void BtnGenerateSchedule_Click(object sender, EventArgs e)
         {
             DateTime fromDate = dateTimePickerFrom.Value.Value.Date;
@@ -530,7 +462,6 @@ namespace GuardScheduler
 
             var keyValues = ScheduleMapper.MapAssignmentsToTemplate(day, posts, persons);
 
-            // Populate labels by keys
             foreach (var kv in keyValues)
             {
                 var lbl = GetLabelByTagFromAllTables(kv.Key);
