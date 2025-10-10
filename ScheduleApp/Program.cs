@@ -43,7 +43,7 @@ namespace ScheduleApp
             );
 
             // --- Run Main Form ---
-            Application.Run(new ScheduleForm(
+            Application.Run(new DetailedScheduleForm(
                 schedulerService,
                 assignmentRepository,
                 personRepository,
