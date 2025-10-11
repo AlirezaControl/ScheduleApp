@@ -82,12 +82,19 @@ namespace GuardScheduler.UI
                 var shiftSlotId = GetShiftSlotIdFromTag(labelTag);
                 if (shiftSlotId == -1) return;
 
-                // Remove existing assignment for this slot
-                var existingAssignments = _assignmentRepo.GetAssignmentsForSlot(shiftSlotId)
+                // Remove ALL of today's assignments for the selected person first
+                var personsTodayAssignments = _assignmentRepo.GetAssignmentsForPersonOnDate(personId, _currentDateNow);
+                foreach (var assignment in personsTodayAssignments)
+                {
+                    _assignmentRepo.Delete(assignment.Id);
+                }
+
+                // Remove existing assignment for this slot (in case someone else was assigned)
+                var existingAssignmentsForSlot = _assignmentRepo.GetAssignmentsForSlot(shiftSlotId)
                     .Where(a => a.AssignedAt.Date == _currentDateNow.Date)
                     .ToList();
 
-                foreach (var assignment in existingAssignments)
+                foreach (var assignment in existingAssignmentsForSlot)
                 {
                     _assignmentRepo.Delete(assignment.Id);
                 }
@@ -102,8 +109,8 @@ namespace GuardScheduler.UI
 
                 _assignmentRepo.Insert(newAssignment);
 
-                // Update UI immediately
-                RefreshRelatedLabels(labelTag, personId, displayName);
+                // Update UI immediately - refresh all labels to reflect the changes
+                RefreshAllLabelsForDate(_currentDateNow);
             }
             catch (Exception ex)
             {
@@ -134,6 +141,53 @@ namespace GuardScheduler.UI
             {
                 MessageBox.Show($"خطا در حذف انتساب: {ex.Message}", "خطا",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void RefreshAllLabelsForDate(DateTime date)
+        {
+            // Get all assignments for the current date
+            var todaysAssignments = _assignmentRepo.GetAssignmentsByDate(date);
+
+            // Create a lookup for quick access: shiftSlotId -> person display name
+            var assignmentLookup = new Dictionary<int, string>();
+            foreach (var assignment in todaysAssignments)
+            {
+                var person = _personRepo.GetById(assignment.PersonId);
+                if (person != null)
+                {
+                    assignmentLookup[assignment.ShiftSlotId] = $"{person.FirstName} {person.LastName}";
+                }
+            }
+
+            // Refresh all tables
+            foreach (var table in new[] { tablePasbakhsh, tableDezhbanMorning, tableDezhbanEvening, tableDezhbanCombined, tableBottom })
+            {
+                foreach (Control control in table.Controls)
+                {
+                    if (control is Label label && label.Tag != null)
+                    {
+                        var labelTag = label.Tag.ToString();
+                        var shiftSlotId = GetShiftSlotIdFromTag(labelTag);
+
+                        if (assignmentLookup.ContainsKey(shiftSlotId))
+                        {
+                            // This slot has an assignment
+                            label.Text = assignmentLookup[shiftSlotId];
+                            label.BackColor = Color.LightGreen;
+                            label.ForeColor = Color.DarkGreen;
+                            label.Font = new Font(label.Font, FontStyle.Bold);
+                        }
+                        else
+                        {
+                            // This slot is empty
+                            label.Text = "";
+                            label.BackColor = Color.White;
+                            label.ForeColor = SystemColors.ControlText;
+                            label.Font = new Font(label.Font, FontStyle.Regular);
+                        }
+                    }
+                }
             }
         }
 

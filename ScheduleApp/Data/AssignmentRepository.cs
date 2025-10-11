@@ -42,7 +42,7 @@ namespace GuardScheduler.Data
             var assignments = new List<Assignment>();
             using var conn = new SQLiteConnection(_connString);
             conn.Open();
-
+            date = date.Date;
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
                 SELECT Id, ShiftSlotId, PersonId, AssignedAt

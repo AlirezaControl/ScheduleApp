@@ -57,7 +57,8 @@ namespace GuardScheduler.Data
         public List<ScheduleDay> GetScheduleDays(DateTime from, DateTime to)
         {
             var dayDict = new Dictionary<DateTime, ScheduleDay>();
-
+            from = from.Date;
+            to = to.Date;
             using (var conn = GetConnection())
             {
                 conn.Open();
