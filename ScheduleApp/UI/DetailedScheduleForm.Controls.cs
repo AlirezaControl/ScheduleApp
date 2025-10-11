@@ -316,15 +316,10 @@ namespace GuardScheduler.UI
                 ?.Select(a => a.PersonId)
                 .Distinct()
                 .ToHashSet() ?? new HashSet<int>();
-
-            return allPersons
+            var selected= allPersons
                 .Where(p =>
                     !todayAssignments.Contains(p.Id) &&
-                    allowedRoles.Any(r =>
-                        p.PrimaryRole == r ||
-                        p.SecondaryRole == r ||
-                        (p.AllowedPostNames != null && IsPersonAllowedForRole(p, r))
-                    ))
+                    IsPersonAllowedForPost(p, allowedRoles))
                 .OrderBy(p => p.RotationOrder)
                 .Select(p => new AllowedPerson
                 {
@@ -333,18 +328,33 @@ namespace GuardScheduler.UI
                     Role = p.PrimaryRole.ToString()
                 })
                 .ToList();
+            return selected;
         }
 
-        private bool IsPersonAllowedForRole(Person person, Role role)
+        private bool IsPersonAllowedForPost(Person person, List<Role> allowedRoles)
         {
-            if (string.IsNullOrEmpty(person.AllowedPostNames))
-                return false;
+            // First check if person has primary or secondary role that matches allowed roles
+            if (allowedRoles.Contains(person.PrimaryRole) ||
+                (person.SecondaryRole.HasValue && allowedRoles.Contains(person.SecondaryRole.Value)))
+            {
+                return true;
+            }
 
-            // Convert the role to string and check if it exists in the allowed post names
-            var roleString = role.ToString();
-            return person.AllowedPostNames.Split(',')
-                .Select(name => name.Trim())
-                .Contains(roleString);
+            // Then check AllowedPostNames if available
+            if (!string.IsNullOrEmpty(person.AllowedPostNames))
+            {
+                var allowedPostNames = person.AllowedPostNames.Split(',')
+                    .Select(name => name.Trim())
+                    .ToList();
+
+                foreach (var allowedRole in allowedRoles)
+                {
+                    if (allowedPostNames.Contains(allowedRole.ToString()))
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         private void AddCellToTable(TableLayoutPanel table, string text, int col, int row, Color backColor, Color foreColor, Font font, bool bold)
