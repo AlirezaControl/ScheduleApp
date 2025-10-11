@@ -62,7 +62,6 @@ namespace GuardScheduler.Data
             cmd.ExecuteNonQuery();
         }
 
-        // <-- New DeleteAll method
         public void DeleteAll()
         {
             using var conn = GetConnection();

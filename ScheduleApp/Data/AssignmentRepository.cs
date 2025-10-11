@@ -23,11 +23,12 @@ namespace GuardScheduler.Data
 
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-                SELECT Id, ShiftSlotId, PersonId, AssignedAt
-                FROM Assignment
-                WHERE PersonId = @personId AND DATE(AssignedAt) = DATE(@date);";
+                SELECT a.Id, a.ShiftSlotId, a.PersonId, a.AssignedAt
+                FROM Assignment a
+                INNER JOIN ShiftSlot ss ON a.ShiftSlotId = ss.Id
+                WHERE a.PersonId = @personId AND ss.Date = @date;";
             cmd.Parameters.AddWithValue("@personId", personId);
-            cmd.Parameters.AddWithValue("@date", date);
+            cmd.Parameters.AddWithValue("@date", date.Date);
 
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
@@ -44,10 +45,11 @@ namespace GuardScheduler.Data
             conn.Open();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-                SELECT Id, ShiftSlotId, PersonId, AssignedAt
-                FROM Assignment
-                WHERE DATE(AssignedAt) = DATE(@date);";
-            cmd.Parameters.AddWithValue("@date", date);
+                SELECT a.Id, a.ShiftSlotId, a.PersonId, a.AssignedAt
+                FROM Assignment a
+                INNER JOIN ShiftSlot ss ON a.ShiftSlotId = ss.Id
+                WHERE ss.Date = @date;";
+            cmd.Parameters.AddWithValue("@date", date.Date);
 
             using var reader = cmd.ExecuteReader();
             while (reader.Read())

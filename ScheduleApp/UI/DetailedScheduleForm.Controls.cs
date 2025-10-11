@@ -83,17 +83,14 @@ namespace GuardScheduler.UI
                 if (shiftSlotId == -1) return;
 
                 // Remove ALL of today's assignments for the selected person first
-                var personsTodayAssignments = _assignmentRepo.GetAssignmentsForPersonOnDate(personId, _currentDateNow.Date);
+                var personsTodayAssignments = _assignmentRepo.GetAssignmentsForPersonOnDate(personId, _currentDateNow);
                 foreach (var assignment in personsTodayAssignments)
                 {
                     _assignmentRepo.Delete(assignment.Id);
                 }
 
                 // Remove existing assignment for this slot (in case someone else was assigned)
-                var existingAssignmentsForSlot = _assignmentRepo.GetAssignmentsForSlot(shiftSlotId)
-                    .Where(a => a.AssignedAt.Date == _currentDateNow.Date)
-                    .ToList();
-
+                var existingAssignmentsForSlot = _assignmentRepo.GetAssignmentsForSlot(shiftSlotId);
                 foreach (var assignment in existingAssignmentsForSlot)
                 {
                     _assignmentRepo.Delete(assignment.Id);
@@ -126,10 +123,7 @@ namespace GuardScheduler.UI
                 var shiftSlotId = GetShiftSlotIdFromTag(labelTag);
                 if (shiftSlotId == -1) return;
 
-                var existingAssignments = _assignmentRepo.GetAssignmentsForSlot(shiftSlotId)
-                    .Where(a => a.AssignedAt.Date == _currentDateNow.Date)
-                    .ToList();
-
+                var existingAssignments = _assignmentRepo.GetAssignmentsForSlot(shiftSlotId);
                 foreach (var assignment in existingAssignments)
                 {
                     _assignmentRepo.Delete(assignment.Id);
@@ -351,7 +345,7 @@ namespace GuardScheduler.UI
             if (shiftSlotId == -1) return null;
 
             return _assignmentRepo.GetAssignmentsForSlot(shiftSlotId)
-                .FirstOrDefault(a => a.AssignedAt.Date == _currentDateNow.Date);
+                .FirstOrDefault(a => a.AssignedAt == null || a.AssignedAt == _currentDateNow.Date);
         }
 
         private List<AllowedPerson> GetAllowedPersonsForLabel(string labelTag)
