@@ -311,12 +311,25 @@ namespace GuardScheduler.UI
             // Use the computed property to get allowed roles as list
             var allowedRoles = post.AllowedRolesList;
 
+            // Special case: For Western Guard posts (postId 62), also include MoafAzRazm persons
+            if (postId == 62) // Negahban Gharbi (Western Guard)
+            {
+                // Create a new list that includes both Negahban and MoafAzRazm roles
+                var expandedRoles = new List<Role>(allowedRoles);
+                if (!expandedRoles.Contains(Role.MoafAzRazm))
+                {
+                    expandedRoles.Add(Role.MoafAzRazm);
+                }
+                allowedRoles = expandedRoles;
+            }
+
             // Get today's assignments to exclude those already on duty
             var todayAssignments = _assignmentRepo.GetAssignmentsByDate(_currentDateNow)
                 ?.Select(a => a.PersonId)
                 .Distinct()
                 .ToHashSet() ?? new HashSet<int>();
-            var selected= allPersons
+
+            var selected = allPersons
                 .Where(p =>
                     !todayAssignments.Contains(p.Id) &&
                     IsPersonAllowedForPost(p, allowedRoles))
@@ -328,6 +341,7 @@ namespace GuardScheduler.UI
                     Role = p.PrimaryRole.ToString()
                 })
                 .ToList();
+
             return selected;
         }
 
