@@ -1,5 +1,4 @@
-﻿//DetailedScheduleForm.Tables
-using System.Drawing;
+﻿using System.Drawing;
 using System.Windows.Forms;
 
 namespace GuardScheduler.UI
@@ -82,8 +81,9 @@ namespace GuardScheduler.UI
             Color headerBackColor = Color.FromArgb(30, 144, 255);
             Color headerForeColor = Color.White;
 
+            // Fixed: Remove "na" tag which doesn't have a valid post mapping
             AddCellToTable(tableBottom, "مسئول بازداشتگاه", 0, 0, headerBackColor, headerForeColor, headerFont, true);
-            tableBottom.Controls.Add(CreateSelectableLabel("na"), 3, 0);
+            // Remove the invalid "na" tag - either remove this row or use a valid tag
 
             AddCellToTable(tableBottom, "راننده آماده", 0, 1, headerBackColor, headerForeColor, headerFont, true);
             tableBottom.Controls.Add(CreateSelectableLabel("R"), 1, 1);
@@ -95,7 +95,9 @@ namespace GuardScheduler.UI
             tableBottom.Controls.Add(CreateSelectableLabel("agh"), 3, 3);
 
             AddCellToTable(tableBottom, "شیفت آشپزخانه", 2, 4, headerBackColor, headerForeColor, headerFont, true);
-            tableBottom.Controls.Add(CreateSelectableLabel("a1/a2"), 3, 4);
+            // Fixed: Use separate valid tags instead of "a1/a2"
+            tableBottom.Controls.Add(CreateSelectableLabel("a1"), 3, 4);
+            tableBottom.Controls.Add(CreateSelectableLabel("a2"), 4, 4);
         }
     }
 }

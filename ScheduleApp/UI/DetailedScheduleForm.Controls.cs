@@ -170,22 +170,27 @@ namespace GuardScheduler.UI
                         var labelTag = label.Tag.ToString();
                         var shiftSlotId = GetShiftSlotIdFromTag(labelTag);
 
-                        if (assignmentLookup.ContainsKey(shiftSlotId))
+                        // Only update if we have a valid shift slot ID
+                        if (shiftSlotId != -1)
                         {
-                            // This slot has an assignment
-                            label.Text = assignmentLookup[shiftSlotId];
-                            label.BackColor = Color.LightGreen;
-                            label.ForeColor = Color.DarkGreen;
-                            label.Font = new Font(label.Font, FontStyle.Bold);
+                            if (assignmentLookup.ContainsKey(shiftSlotId))
+                            {
+                                // This slot has an assignment
+                                label.Text = assignmentLookup[shiftSlotId];
+                                label.BackColor = Color.LightGreen;
+                                label.ForeColor = Color.DarkGreen;
+                                label.Font = new Font(label.Font, FontStyle.Bold);
+                            }
+                            else
+                            {
+                                // This slot is empty
+                                label.Text = "";
+                                label.BackColor = Color.White;
+                                label.ForeColor = SystemColors.ControlText;
+                                label.Font = new Font(label.Font, FontStyle.Regular);
+                            }
                         }
-                        else
-                        {
-                            // This slot is empty
-                            label.Text = "";
-                            label.BackColor = Color.White;
-                            label.ForeColor = SystemColors.ControlText;
-                            label.Font = new Font(label.Font, FontStyle.Regular);
-                        }
+                        // If shiftSlotId is -1, don't modify the label - it might be a static label
                     }
                 }
             }

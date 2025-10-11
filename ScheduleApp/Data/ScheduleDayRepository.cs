@@ -52,6 +52,68 @@ namespace GuardScheduler.Data
         }
 
         /// <summary>
+        /// Update a single assignment in the Schedules table
+        /// </summary>
+        public void UpdateAssignment(int shiftSlotId, int? personId)
+        {
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+
+                var cmd = new SQLiteCommand(@"
+                    UPDATE Schedules 
+                    SET PersonId = @PersonId 
+                    WHERE Id = @ShiftSlotId", conn);
+
+                cmd.Parameters.AddWithValue("@PersonId", personId ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@ShiftSlotId", shiftSlotId);
+
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
+        /// Clear all assignments for a specific person on a specific date
+        /// </summary>
+        public void ClearPersonAssignmentsForDate(int personId, DateTime date)
+        {
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+
+                var cmd = new SQLiteCommand(@"
+                    UPDATE Schedules 
+                    SET PersonId = NULL 
+                    WHERE PersonId = @PersonId AND Date = @Date", conn);
+
+                cmd.Parameters.AddWithValue("@PersonId", personId);
+                cmd.Parameters.AddWithValue("@Date", date);
+
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
+        /// Clear assignment for a specific shift slot
+        /// </summary>
+        public void ClearShiftSlotAssignment(int shiftSlotId)
+        {
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+
+                var cmd = new SQLiteCommand(@"
+                    UPDATE Schedules 
+                    SET PersonId = NULL 
+                    WHERE Id = @ShiftSlotId", conn);
+
+                cmd.Parameters.AddWithValue("@ShiftSlotId", shiftSlotId);
+
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
         /// Retrieve ScheduleDay objects with their slots and assignments.
         /// </summary>
         public List<ScheduleDay> GetScheduleDays(DateTime from, DateTime to)
