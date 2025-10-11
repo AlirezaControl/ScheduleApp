@@ -83,7 +83,7 @@ namespace GuardScheduler.UI
                 if (shiftSlotId == -1) return;
 
                 // Remove ALL of today's assignments for the selected person first
-                var personsTodayAssignments = _assignmentRepo.GetAssignmentsForPersonOnDate(personId, _currentDateNow);
+                var personsTodayAssignments = _assignmentRepo.GetAssignmentsForPersonOnDate(personId, _currentDateNow.Date);
                 foreach (var assignment in personsTodayAssignments)
                 {
                     _assignmentRepo.Delete(assignment.Id);
