@@ -13,6 +13,7 @@ namespace GuardScheduler.Data
         /// <summary>
         /// Save multiple ScheduleDay objects to the Schedules table.
         /// Each ShiftSlot + optional Assignment is a row.
+        /// Preserve existing slot.Id when present so Schedules.Id matches ShiftSlot.Id.
         /// </summary>
         public void SaveScheduleDays(List<ScheduleDay> scheduleDays)
         {
@@ -24,27 +25,47 @@ namespace GuardScheduler.Data
                 {
                     foreach (var slot in day.ShiftSlots)
                     {
-                        // Find assignment for this slot (by reference to same object in memory)
-                        var assignment = day.Assignments.FirstOrDefault(a => a.ShiftSlotId == slot.Id || a.ShiftSlotId == 0);
+                        // Find assignment for this slot (by ShiftSlotId)
+                        var assignment = day.Assignments.FirstOrDefault(a => a.ShiftSlotId == slot.Id);
 
-                        var cmd = new SQLiteCommand(@"
-                            INSERT INTO Schedules(Date, PostId, PersonId, Start, DurationHours)
-                            VALUES(@Date, @PostId, @PersonId, @Start, @DurationHours);
-                            SELECT last_insert_rowid();", conn);
-
-                        cmd.Parameters.AddWithValue("@Date", day.Date);
-                        cmd.Parameters.AddWithValue("@PostId", slot.PostId);
-                        cmd.Parameters.AddWithValue("@PersonId", assignment?.PersonId ?? (object)DBNull.Value);
-                        cmd.Parameters.AddWithValue("@Start", slot.Start.ToString());
-                        cmd.Parameters.AddWithValue("@DurationHours", slot.DurationHours);
-
-                        // Set the generated database ID
-                        slot.Id = Convert.ToInt32(cmd.ExecuteScalar());
-
-                        // Update assignment to reference correct slot ID
-                        if (assignment != null)
+                        // If slot.Id is already set (from ShiftSlot table), insert using that Id so Schedules.Id == ShiftSlot.Id
+                        if (slot.Id > 0)
                         {
-                            assignment.ShiftSlotId = slot.Id;
+                            using var cmd = new SQLiteCommand(@"
+                                INSERT OR REPLACE INTO Schedules(Id, Date, PostId, PersonId, Start, DurationHours)
+                                VALUES(@Id, @Date, @PostId, @PersonId, @Start, @DurationHours);", conn);
+
+                            cmd.Parameters.AddWithValue("@Id", slot.Id);
+                            cmd.Parameters.AddWithValue("@Date", day.Date);
+                            cmd.Parameters.AddWithValue("@PostId", slot.PostId);
+                            cmd.Parameters.AddWithValue("@PersonId", assignment?.PersonId ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@Start", slot.Start.ToString());
+                            cmd.Parameters.AddWithValue("@DurationHours", slot.DurationHours);
+
+                            cmd.ExecuteNonQuery();
+                            // Do not overwrite slot.Id - keep original ShiftSlot id
+                        }
+                        else
+                        {
+                            using var cmd = new SQLiteCommand(@"
+                                INSERT INTO Schedules(Date, PostId, PersonId, Start, DurationHours)
+                                VALUES(@Date, @PostId, @PersonId, @Start, @DurationHours);
+                                SELECT last_insert_rowid();", conn);
+
+                            cmd.Parameters.AddWithValue("@Date", day.Date);
+                            cmd.Parameters.AddWithValue("@PostId", slot.PostId);
+                            cmd.Parameters.AddWithValue("@PersonId", assignment?.PersonId ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@Start", slot.Start.ToString());
+                            cmd.Parameters.AddWithValue("@DurationHours", slot.DurationHours);
+
+                            // Set the generated database ID on slot
+                            slot.Id = Convert.ToInt32(cmd.ExecuteScalar());
+
+                            // Update assignment to reference correct slot ID
+                            if (assignment != null)
+                            {
+                                assignment.ShiftSlotId = slot.Id;
+                            }
                         }
                     }
                 }
@@ -138,7 +159,7 @@ namespace GuardScheduler.Data
                 {
                     while (reader.Read())
                     {
-                        int slotId = reader.GetInt32(0);
+                        int scheduleRowId = reader.GetInt32(0);
                         DateTime date = reader.GetDateTime(1);
                         int postId = reader.GetInt32(2);
                         int? personId = reader.IsDBNull(3) ? (int?)null : reader.GetInt32(3);
@@ -150,9 +171,24 @@ namespace GuardScheduler.Data
 
                         var day = dayDict[date];
 
+                        // Try to find matching ShiftSlot row so we use ShiftSlot.Id (assignments reference ShiftSlot.Id)
+                        int slotId = -1;
+                        using (var findCmd = new SQLiteCommand(@"SELECT Id FROM ShiftSlot WHERE Date = @Date AND PostId = @PostId AND StartHour = @StartHour AND DurationHours = @Duration LIMIT 1", conn))
+                        {
+                            findCmd.Parameters.AddWithValue("@Date", date.Date);
+                            findCmd.Parameters.AddWithValue("@PostId", postId);
+                            findCmd.Parameters.AddWithValue("@StartHour", start.Hours);
+                            findCmd.Parameters.AddWithValue("@Duration", duration);
+
+                            var result = findCmd.ExecuteScalar();
+                            if (result != null && result != DBNull.Value)
+                                slotId = Convert.ToInt32(result);
+                        }
+
                         var slot = new ShiftSlot
                         {
-                            Id = slotId,
+                            // Use ShiftSlot.Id when available; otherwise fall back to schedule row id
+                            Id = slotId > 0 ? slotId : scheduleRowId,
                             Date = date,
                             PostId = postId,
                             Start = start,
@@ -165,7 +201,7 @@ namespace GuardScheduler.Data
                         {
                             day.Assignments.Add(new Assignment
                             {
-                                ShiftSlotId = slotId,
+                                ShiftSlotId = slot.Id,
                                 PersonId = personId.Value,
                                 AssignedAt = DateTime.Now // could store actual assignment time if needed
                             });

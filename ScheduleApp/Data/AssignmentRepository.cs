@@ -9,6 +9,9 @@ namespace GuardScheduler.Data
     {
         private readonly string _connString;
 
+        // expose event
+        public event EventHandler AssignmentsChanged;
+
         public AssignmentRepository(string connString)
         {
             _connString = connString;
@@ -79,7 +82,12 @@ namespace GuardScheduler.Data
             cmd.Parameters.AddWithValue("@personId", assignment.PersonId);
             cmd.Parameters.AddWithValue("@assignedAt", assignment.AssignedAt);
 
-            return Convert.ToInt32(cmd.ExecuteScalar());
+            int id = Convert.ToInt32(cmd.ExecuteScalar());
+
+            // raise event
+            AssignmentsChanged?.Invoke(this, EventArgs.Empty);
+
+            return id;
         }
 
         public void Delete(int id)
@@ -91,6 +99,8 @@ namespace GuardScheduler.Data
             cmd.CommandText = "DELETE FROM Assignment WHERE Id = @id;";
             cmd.Parameters.AddWithValue("@id", id);
             cmd.ExecuteNonQuery();
+
+            AssignmentsChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void DeleteAll()
@@ -101,6 +111,8 @@ namespace GuardScheduler.Data
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "DELETE FROM Assignment;";
             cmd.ExecuteNonQuery();
+
+            AssignmentsChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public List<Assignment> GetAssignmentsForSlot(int shiftSlotId)

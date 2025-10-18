@@ -16,5 +16,8 @@ namespace GuardScheduler.Data
         void Delete(int id);
         void DeleteAll();
         List<Assignment> GetAssignmentsForSlot(int shiftSlotId);
+
+        // Event fired when assignments change (insert/delete)
+        event EventHandler AssignmentsChanged;
     }
 }

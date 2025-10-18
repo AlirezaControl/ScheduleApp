@@ -58,19 +58,14 @@ namespace GuardScheduler.UI
                 {
                     // Assign person
                     UpdateAssignment(labelTag, popup.SelectedPerson.Id, popup.SelectedPerson.DisplayName);
-                    lbl.Text = popup.SelectedPerson.DisplayName;
-                    lbl.BackColor = Color.LightGreen;
-                    lbl.ForeColor = Color.DarkGreen;
-                    lbl.Font = new Font(lbl.Font, FontStyle.Bold);
+                    // Refresh all labels to reflect updated assignments
+                    RefreshAllLabelsForDate(_currentDateNow);
                 }
                 else if (popup.ClearAssignment)
                 {
                     // Clear assignment
                     ClearAssignment(labelTag);
-                    lbl.Text = "";
-                    lbl.BackColor = Color.White;
-                    lbl.ForeColor = SystemColors.ControlText;
-                    lbl.Font = new Font(lbl.Font, FontStyle.Regular);
+                    RefreshAllLabelsForDate(_currentDateNow);
                 }
             }
         }
@@ -82,31 +77,65 @@ namespace GuardScheduler.UI
                 var shiftSlotId = GetShiftSlotIdFromTag(labelTag);
                 if (shiftSlotId == -1) return;
 
-                // Remove ALL of today's assignments for the selected person first
-                var personsTodayAssignments = _assignmentRepo.GetAssignmentsForPersonOnDate(personId, _currentDateNow);
-                foreach (var assignment in personsTodayAssignments)
+                // Determine old assignments for this slot and date
+                var scheduleDay = _scheduleRepo.GetScheduleDays(_currentDateNow, _currentDateNow).FirstOrDefault();
+                if (scheduleDay == null) return;
+
+                // Find existing assignment for this slot (if any)
+                var existingAssign = scheduleDay.Assignments.FirstOrDefault(a => a.ShiftSlotId == shiftSlotId);
+
+                // If there is an existing assignment, remember oldPersonId to replace other occurrences
+                int? oldPersonId = existingAssign?.PersonId;
+
+                // If old person exists and is different, replace all that person's assignments on this date with the new person
+                if (oldPersonId.HasValue && oldPersonId.Value != personId)
                 {
-                    _assignmentRepo.Delete(assignment.Id);
+                    var assignmentsOfOld = _assignmentRepo.GetAssignmentsForPersonOnDate(oldPersonId.Value, _currentDateNow.Date);
+
+                    foreach (var oldAssign in assignmentsOfOld)
+                    {
+                        // Skip the target slot here; we'll handle it below to avoid double-processing
+                        if (oldAssign.ShiftSlotId == shiftSlotId)
+                            continue;
+
+                        // Remove the old assignment row
+                        _assignmentRepo.Delete(oldAssign.Id);
+
+                        // Insert a new assignment for the same slot with the new person
+                        var replacement = new Assignment
+                        {
+                            ShiftSlotId = oldAssign.ShiftSlotId,
+                            PersonId = personId,
+                            AssignedAt = _currentDateNow.Date
+                        };
+                        _assignmentRepo.Insert(replacement);
+
+                        // Update the Schedules table so ScheduleRepo reflects new person
+                        _scheduleRepo.UpdateAssignment(oldAssign.ShiftSlotId, personId);
+                    }
                 }
 
-                // Remove existing assignment for this slot (in case someone else was assigned)
+                // Remove existing assignment for this specific slot (in case someone else was assigned)
                 var existingAssignmentsForSlot = _assignmentRepo.GetAssignmentsForSlot(shiftSlotId);
                 foreach (var assignment in existingAssignmentsForSlot)
                 {
                     _assignmentRepo.Delete(assignment.Id);
                 }
 
-                // Add new assignment
+                // Add new assignment for this slot
                 var newAssignment = new Assignment
                 {
                     ShiftSlotId = shiftSlotId,
                     PersonId = personId,
-                    AssignedAt = _currentDateNow
+                    AssignedAt = _currentDateNow.Date
                 };
 
                 _assignmentRepo.Insert(newAssignment);
 
-                // Update UI immediately - refresh all labels to reflect the changes
+                // Update Schedules table for this slot to set PersonId
+                _scheduleRepo.UpdateAssignment(shiftSlotId, personId);
+
+                // Refresh UI
                 RefreshAllLabelsForDate(_currentDateNow);
             }
             catch (Exception ex)
@@ -129,6 +158,8 @@ namespace GuardScheduler.UI
                     _assignmentRepo.Delete(assignment.Id);
                 }
 
+                _scheduleRepo.ClearShiftSlotAssignment(shiftSlotId);
+
                 RefreshRelatedLabels(labelTag, 0, "");
             }
             catch (Exception ex)
@@ -145,9 +176,10 @@ namespace GuardScheduler.UI
 
             // Create a lookup for quick access: shiftSlotId -> person display name
             var assignmentLookup = new Dictionary<int, string>();
+            var persons = _personRepo.GetAll();
             foreach (var assignment in todaysAssignments)
             {
-                var person = _personRepo.GetById(assignment.PersonId);
+                var person = persons.FirstOrDefault(p => p.Id == assignment.PersonId);
                 if (person != null)
                 {
                     assignmentLookup[assignment.ShiftSlotId] = $"{person.FirstName} {person.LastName}";
@@ -345,7 +377,7 @@ namespace GuardScheduler.UI
             if (shiftSlotId == -1) return null;
 
             return _assignmentRepo.GetAssignmentsForSlot(shiftSlotId)
-                .FirstOrDefault(a => a.AssignedAt == null || a.AssignedAt == _currentDateNow.Date);
+                .FirstOrDefault(a => a.AssignedAt.Date == _currentDateNow.Date);
         }
 
         private List<AllowedPerson> GetAllowedPersonsForLabel(string labelTag)
